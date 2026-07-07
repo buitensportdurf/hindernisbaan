@@ -1,0 +1,81 @@
+/* ============================================================
+   DURF · shadcn theme layer
+   ------------------------------------------------------------
+   The PORTABLE contract. These are the standard shadcn/ui semantic
+   tokens (same names as shadcn-svelte), in HSL-channel format so
+   Tailwind can do `hsl(var(--primary))`. Durf brand values are mapped
+   onto them — primary = "Bok blauw" #00A5E3.
+
+   Drop this file (or just these :root/.dark blocks) into a
+   shadcn-svelte project's app.css and every shadcn component re-skins
+   to Durf. No component code changes, no framework flip.
+
+   Pair with the Tailwind preset in assets/shadcn/tailwind-preset.js
+   (colors: hsl(var(--x)); borderRadius from --radius).
+   ============================================================ */
+:root {
+  --background: 0 0% 100%; /* @kind color */
+  --foreground: 0 0% 14%; /* @kind color */
+
+  --card: 0 0% 100%; /* @kind color */
+  --card-foreground: 0 0% 14%; /* @kind color */
+
+  --popover: 0 0% 100%; /* @kind color */
+  --popover-foreground: 0 0% 14%; /* @kind color */
+
+  /* Bok blauw #00A5E3 */
+  --primary: 197 100% 44%; /* @kind color */
+  --primary-foreground: 0 0% 100%; /* @kind color */
+
+  --secondary: 0 0% 93%; /* @kind color */
+  --secondary-foreground: 0 0% 14%; /* @kind color */
+
+  --muted: 0 0% 96%; /* @kind color */
+  --muted-foreground: 0 0% 46%; /* @kind color */
+
+  /* faint Bok tint — ghost/outline hover */
+  --accent: 197 84% 95%; /* @kind color */
+  --accent-foreground: 197 100% 28%; /* @kind color */
+
+  /* error #c62828 */
+  --destructive: 0 66% 47%; /* @kind color */
+  --destructive-foreground: 0 0% 100%; /* @kind color */
+
+  --border: 0 0% 80%; /* @kind color */
+  --input: 0 0% 80%; /* @kind color */
+  --ring: 197 100% 44%; /* @kind color */
+
+  /* Durf cards = 16px. radius var drives rounded-lg/md/sm; buttons/chips use rounded-full. */
+  --radius: 1rem; /* @kind radius */
+}
+
+.dark,
+:root[data-theme="dark"] {
+  --background: 0 0% 14%; /* @kind color */
+  --foreground: 0 0% 98%; /* @kind color */
+
+  --card: 0 0% 22%; /* @kind color */
+  --card-foreground: 0 0% 98%; /* @kind color */
+
+  --popover: 0 0% 22%; /* @kind color */
+  --popover-foreground: 0 0% 98%; /* @kind color */
+
+  --primary: 197 100% 44%; /* @kind color */
+  --primary-foreground: 0 0% 100%; /* @kind color */
+
+  --secondary: 0 0% 26%; /* @kind color */
+  --secondary-foreground: 0 0% 98%; /* @kind color */
+
+  --muted: 0 0% 18%; /* @kind color */
+  --muted-foreground: 0 0% 74%; /* @kind color */
+
+  --accent: 197 100% 16%; /* @kind color */
+  --accent-foreground: 197 83% 87%; /* @kind color */
+
+  --destructive: 0 70% 55%; /* @kind color */
+  --destructive-foreground: 0 0% 100%; /* @kind color */
+
+  --border: 0 0% 30%; /* @kind color */
+  --input: 0 0% 30%; /* @kind color */
+  --ring: 197 100% 44%; /* @kind color */
+}

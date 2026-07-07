@@ -1,0 +1,103 @@
+/* ============================================================
+   DURF · COLORS
+   "Bok blauw" (#00A5E3) is the one true brand color — the blue of
+   the ibex mark. Everything else is a supporting neutral, a state,
+   or a warm "sand" trail accent for the outdoor feel.
+   ============================================================ */
+:root {
+  /* ---- Brand: Bok blauw scale ---- */
+  --bok-50:  #e8f7fd;
+  --bok-100: #c4ebfa;
+  --bok-200: #8fd9f3;  /* rgb(131,202,229) tints from the file */
+  --bok-300: #4abbe6;  /* rgb(74,187,230) */
+  --bok-400: #1aafe6;
+  --bok-500: #00a5e3;  /* ◀ core "Bok blauw"  rgb(0,165,227) */
+  --bok-600: #008bbf;  /* rgb(0,139,191) */
+  --bok-700: #007caa;  /* rgb(0,124,170) — stroke blue */
+  --bok-800: #00688f;  /* rgb(0,104,143) */
+  --bok-900: #003d54;  /* rgb(0,61,84) — deep water */
+
+  /* ---- Ink / dark surfaces ---- */
+  --ink-900: #000000;  /* pure black — logo line, max contrast */
+  --ink-800: #232323;
+  --ink-700: #373737;  /* ◀ brand dark surface  rgb(55,55,55) */
+  --ink-600: #424242;  /* rgb(66,66,66) */
+  --ink-500: #555555;
+
+  /* ---- Neutral grays ---- */
+  --gray-50:  #fafafa;
+  --gray-100: #eeeeee;  /* rgb(238,238,238) */
+  --gray-200: #e0e0e0;
+  --gray-300: #cccccc;  /* rgb(204,204,204) */
+  --gray-400: #bdbdbd;  /* rgb(189,189,189) */
+  --gray-500: #9b9b9b;  /* rgb(155,155,155) */
+  --gray-600: #757575;  /* rgb(117,117,117) — secondary text */
+  --gray-700: #5c5c5c;
+  --white: #ffffff;
+
+  /* ---- Warm "sand / trail" accent (outdoor warmth) ---- */
+  --sand-100: #f7eecb;
+  --sand-300: #f3dfa6;  /* rgb(243,223,166) */
+  --sand-500: #b5a77e;  /* rgb(181,167,126) */
+  --sand-700: #54371e;  /* rgb(84,55,30) — earth/brown */
+
+  /* ---- Semantic states ---- */
+  --success: #357638;  /* rgb(53,118,56) — forest green */
+  --success-bg: #e8f1e8;
+  --error:   #c62828;  /* rgb(198,40,40) */
+  --error-bg: #fbe9e9;
+  --warning: #e08a00;
+  --warning-bg: #fcf0db;
+  --info:    #378add;  /* rgb(55,138,221) */
+  --info-bg: #e7f1fb;
+
+  /* ============================================================
+     SEMANTIC ALIASES — reach for these in components.
+     ============================================================ */
+  --brand:            var(--bok-500);
+  --brand-hover:      var(--bok-600);
+  --brand-active:     var(--bok-700);
+  --brand-subtle:     var(--bok-50);
+  --brand-on:         var(--white);   /* text/icon on brand fill */
+
+  --bg:               var(--white);
+  --bg-subtle:        var(--gray-50);
+  --bg-muted:         var(--gray-100);
+  --bg-inverse:       var(--ink-700);
+
+  --surface-card:     var(--white);
+  --surface-raised:   var(--white);
+  --surface-sunken:   var(--gray-50);
+  --surface-inverse:  var(--ink-700);
+
+  --text-strong:      var(--ink-900);
+  --text-body:        var(--ink-600);
+  --text-muted:       var(--gray-600);
+  --text-disabled:    var(--gray-400);
+  --text-on-brand:    var(--white);
+  --text-on-inverse:  var(--white);
+  --text-link:        var(--bok-700);
+
+  --border:           var(--gray-300);
+  --border-subtle:    var(--gray-200);
+  --border-strong:    var(--ink-900);
+  --focus-ring:       var(--bok-500);
+}
+
+/* Dark scope — for logo-on-dark surfaces & inverse blocks */
+.durf-dark,
+:root[data-theme="dark"] {
+  --bg:              var(--ink-700);
+  --bg-subtle:       var(--ink-800);
+  --bg-muted:        var(--ink-600);
+  --surface-card:    var(--ink-600);
+  --surface-raised:  var(--ink-600);
+  --surface-sunken:  var(--ink-800);
+  --text-strong:     var(--white);
+  --text-body:       #e6e6e6;
+  --text-muted:      var(--gray-400);
+  --border:          rgba(255,255,255,0.16);
+  --border-subtle:   rgba(255,255,255,0.10);
+  --border-strong:   var(--white);
+  --brand-on:        var(--white);
+}

@@ -1,3 +1,18 @@
+@import './lib/durf-ds/tokens/colors.css';
+@import './lib/durf-ds/tokens/shadcn.css';
+@import './lib/durf-ds/tokens/spacing.css';
+@import './lib/durf-ds/tokens/typography.css';
+@import '@fontsource/geist-sans/400.css';
+@import '@fontsource/geist-sans/500.css';
+@import '@fontsource/geist-sans/600.css';
+@import '@fontsource/geist-sans/700.css';
 @import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { font-family: 'Geist', system-ui, sans-serif; }
+html, body { margin: 0; height: 100%; }
 
 .leaflet-container { background: #dfe8d8; font-family: 'Geist', sans-serif; }
