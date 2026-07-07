@@ -1,1 +1,3 @@
-/* app.css */
+@import 'leaflet/dist/leaflet.css';
+
+.leaflet-container { background: #dfe8d8; font-family: 'Geist', sans-serif; }
