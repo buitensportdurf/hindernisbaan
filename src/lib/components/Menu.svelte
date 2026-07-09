@@ -1,43 +1,210 @@
 <script lang="ts">
-  import { t, LOCALES, type Locale } from '$lib/i18n';
-  import { TILE_LAYERS, type TileKey } from '$lib/map/tiles';
+  import { t, LOCALES } from '$lib/i18n';
+  import type { TileKey } from '$lib/map/tiles';
   import type { AppState } from '$lib/state/app.svelte';
+  import { Button } from '$lib/components/ui/button';
+  import { cn } from '$lib/utils';
+  import { Card, CardDescription, CardTitle } from '$lib/components/ui/card';
+  import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
+  import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+  import LanguagesIcon from '@lucide/svelte/icons/languages';
+  import LayersIcon from '@lucide/svelte/icons/layers';
+  import MapIcon from '@lucide/svelte/icons/map';
+  import MenuIcon from '@lucide/svelte/icons/menu';
+  import SatelliteIcon from '@lucide/svelte/icons/satellite';
+  import SettingsIcon from '@lucide/svelte/icons/settings';
+  import XIcon from '@lucide/svelte/icons/x';
+
   let { app }: { app: AppState } = $props();
 
-  const rowBase =
-    'display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;background:transparent;border:none;border-radius:10px;cursor:pointer;font:600 14px var(--font-sans);color:#232323;text-align:left';
+  const PANEL_MS = 220;
+  let panelMounted = $state(false);
+  let panelOpen = $state(false);
+
+  $effect(() => {
+    if (app.menuOpen) {
+      panelMounted = true;
+      const frame = requestAnimationFrame(() => {
+        panelOpen = true;
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+
+    panelOpen = false;
+    const timeout = setTimeout(() => {
+      panelMounted = false;
+    }, PANEL_MS);
+    return () => clearTimeout(timeout);
+  });
+
+  const menuButton =
+    'h-auto w-full justify-start gap-3 rounded-lg px-3 py-2 text-sm font-semibold';
+  const languageButton =
+    'h-7 min-h-7 w-9 rounded-md px-0 py-0 text-xs font-semibold uppercase';
+  const sectionLabel =
+    'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground';
+  const menuIcon = 'size-4 shrink-0 text-muted-foreground';
+
+  const flushCard =
+    'max-h-[78vh] w-[min(86vw,300px)] gap-0 overflow-x-hidden overflow-y-auto rounded-none rounded-br-xl border-0 py-0 shadow-[4px_4px_16px_rgba(0,0,0,0.08)] ring-0';
+
+  let measureEl = $state<HTMLDivElement | null>(null);
+  let bodyHeight = $state<number | null>(null);
+  let bodyReady = $state(false);
+
+  $effect(() => {
+    const el = measureEl;
+    if (!el) return;
+
+    const sync = () => {
+      bodyHeight = Math.ceil(el.getBoundingClientRect().height);
+      bodyReady = true;
+    };
+
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  });
+
+  $effect(() => {
+    if (!panelMounted) {
+      bodyHeight = null;
+      bodyReady = false;
+    }
+  });
 </script>
 
-<div onclick={(e) => e.stopPropagation()} role="menu" tabindex="-1"
-  style="position:absolute;top:64px;left:12px;z-index:1200;width:min(86vw,300px);max-height:78vh;overflow:auto;background:#fff;border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--shadow-md);padding:10px">
-  {#if app.menuLevel === 'root'}
-    <div style="display:flex;align-items:center;gap:10px;padding:2px 8px 12px">
-      <div>
-        <div style="font:700 14.5px var(--font-sans);color:#232323">{t(app.locale, 'app.title')}</div>
-        <div style="font:500 11px var(--font-sans);color:var(--text-muted)">{t(app.locale, 'app.subtitle')} · v2026.juni</div>
+{#if panelMounted}
+  <div
+    class={cn('menu-backdrop fixed inset-0 z-[1150] bg-black/5', panelOpen && 'menu-backdrop--open')}
+    role="presentation"
+    onclick={() => app.closeMenu()}
+  ></div>
+{/if}
+
+<div class="absolute left-0 top-0 z-[1250]">
+  {#if panelMounted}
+    <Card
+      size="sm"
+      class={cn(flushCard, 'menu-panel', panelOpen && 'menu-panel--open')}
+      role="menu"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+    >
+      <div
+        class={cn('menu-body-shell', bodyReady && 'menu-body-shell--ready')}
+        style:height={bodyHeight === null ? undefined : `${bodyHeight}px`}
+      >
+        <div bind:this={measureEl}>
+          <header class="flex items-center gap-3 p-3 pb-2">
+            <Button
+              variant="outline"
+              size="icon"
+              class="shrink-0"
+              aria-label={t(app.locale, 'menu.settings')}
+              onclick={() => app.toggleMenu()}
+            >
+              {#if app.menuLevel === 'settings'}
+                <ArrowLeftIcon />
+              {:else}
+                <XIcon />
+              {/if}
+            </Button>
+
+            <div class="flex min-h-9 min-w-0 flex-1 flex-col justify-center gap-0">
+              {#if app.menuLevel === 'root'}
+                <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
+                  {t(app.locale, 'app.title')}
+                </CardTitle>
+                <CardDescription class="text-xs leading-snug">
+                  {t(app.locale, 'app.subtitle')} · v2026.juni
+                </CardDescription>
+              {:else}
+                <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
+                  {t(app.locale, 'settings.title')}
+                </CardTitle>
+              {/if}
+            </div>
+          </header>
+
+          <div class="flex flex-col gap-5 px-3 pb-4 pt-1">
+        {#if app.menuLevel === 'root'}
+          <Button variant="ghost" class={menuButton} onclick={() => app.gotoSettings()}>
+            <SettingsIcon class={menuIcon} />
+            <span class="flex-1 text-left">{t(app.locale, 'menu.settings')}</span>
+            <ChevronRightIcon class="text-muted-foreground" />
+          </Button>
+        {:else}
+          <section class="flex flex-col gap-2">
+            <p class={sectionLabel}>
+              <LayersIcon class="size-3" />
+              {t(app.locale, 'settings.tiles')}
+            </p>
+            <div class="flex flex-col gap-1">
+              {#each ['map', 'sat'] as key (key)}
+                <Button
+                  variant="ghost"
+                  class={cn(
+                    menuButton,
+                    app.tile === key && 'bg-secondary text-secondary-foreground'
+                  )}
+                  onclick={() => app.setTile(key as TileKey)}
+                >
+                  {#if key === 'map'}
+                    <MapIcon class={menuIcon} />
+                  {:else}
+                    <SatelliteIcon class={menuIcon} />
+                  {/if}
+                  <span class="flex-1 text-left">
+                    {t(app.locale, key === 'map' ? 'settings.tiles.map' : 'settings.tiles.sat')}
+                    <span class="font-medium text-muted-foreground">
+                      {key === 'map' ? ' - ' : ' · '}{t(
+                        app.locale,
+                        key === 'map' ? 'settings.tiles.map.sub' : 'settings.tiles.sat.sub'
+                      )}
+                    </span>
+                  </span>
+                </Button>
+              {/each}
+            </div>
+          </section>
+
+          <section class="flex flex-col gap-1.5">
+            <p class={sectionLabel}>
+              <LanguagesIcon class="size-3" />
+              {t(app.locale, 'settings.language')}
+            </p>
+            <div class="flex w-fit gap-1">
+              {#each LOCALES as l (l)}
+                <Button
+                  variant="ghost"
+                  class={cn(
+                    languageButton,
+                    app.locale === l && 'bg-secondary text-secondary-foreground'
+                  )}
+                  onclick={() => app.setLocale(l)}
+                >
+                  {l}
+                </Button>
+              {/each}
+            </div>
+          </section>
+        {/if}
+          </div>
+        </div>
       </div>
-    </div>
-    <button style={rowBase} onclick={() => app.gotoSettings()}>
-      <span style="flex:1">{t(app.locale, 'menu.settings')}</span>
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
-    </button>
+    </Card>
   {:else}
-    <div style="font:700 15px var(--font-sans);color:#232323;padding:2px 8px 12px">{t(app.locale, 'settings.title')}</div>
-    <div style="font:700 10px var(--font-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:4px 12px">{t(app.locale, 'settings.tiles')}</div>
-    {#each ['map', 'sat'] as key (key)}
-      <button style={rowBase + (app.tile === key ? ';background:var(--brand-subtle)' : '')} onclick={() => app.setTile(key as TileKey)}>
-        <span style="flex:1">{t(app.locale, key === 'map' ? 'settings.tiles.map' : 'settings.tiles.sat')}
-          <span style="font-weight:500;color:var(--text-muted);font-size:12px">· {t(app.locale, key === 'map' ? 'settings.tiles.map.sub' : 'settings.tiles.sat.sub')}</span>
-        </span>
-      </button>
-    {/each}
-    <div style="height:1px;background:var(--border-subtle);margin:8px 6px"></div>
-    <div style="font:700 10px var(--font-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:4px 12px">{t(app.locale, 'settings.language')}</div>
-    <div style="display:flex;gap:8px;padding:4px 12px 8px">
-      {#each LOCALES as l (l)}
-        <button onclick={() => app.setLocale(l)}
-          style="flex:1;padding:8px;border-radius:8px;border:1.5px solid {app.locale === l ? 'var(--bok-500)' : 'var(--border)'};background:{app.locale === l ? 'var(--brand-subtle)' : '#fff'};font:600 13px var(--font-sans);cursor:pointer;text-transform:uppercase">{l}</button>
-      {/each}
+    <div class="p-3">
+      <Button
+        variant="outline"
+        size="icon"
+        aria-label={t(app.locale, 'menu.settings')}
+        onclick={() => app.toggleMenu()}
+      >
+        <MenuIcon />
+      </Button>
     </div>
   {/if}
 </div>

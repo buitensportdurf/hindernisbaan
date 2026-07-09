@@ -12,7 +12,63 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { font-family: 'Geist', system-ui, sans-serif; }
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground;
+  }
+}
+
 html, body { margin: 0; height: 100%; }
 
 .leaflet-container { background: #dfe8d8; font-family: 'Geist', sans-serif; }
+
+@layer components {
+  .menu-panel {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+    transform-origin: top left;
+    transition:
+      opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .menu-panel--open {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  @starting-style {
+    .menu-panel--open {
+      opacity: 0;
+      transform: scale(0.96) translateY(-6px);
+    }
+  }
+
+  .menu-backdrop {
+    opacity: 0;
+    transition: opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .menu-backdrop--open {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .menu-backdrop--open {
+      opacity: 0;
+    }
+  }
+
+  .menu-body-shell {
+    overflow: hidden;
+    interpolate-size: allow-keywords;
+  }
+
+  .menu-body-shell--ready {
+    transition: height 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}

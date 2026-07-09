@@ -33,7 +33,7 @@
   --muted: 0 0% 96%; /* @kind color */
   --muted-foreground: 0 0% 46%; /* @kind color */
 
-  /* faint Bok tint — ghost/outline hover */
+  /* faint Bok tint — ghost hover */
   --accent: 197 84% 95%; /* @kind color */
   --accent-foreground: 197 100% 28%; /* @kind color */
 
@@ -45,8 +45,7 @@
   --input: 0 0% 80%; /* @kind color */
   --ring: 197 100% 44%; /* @kind color */
 
-  /* Durf cards = 16px. radius var drives rounded-lg/md/sm; buttons/chips use rounded-full. */
-  --radius: 1rem; /* @kind radius */
+  --radius: 1rem; /* @kind radius — drives rounded-lg/md/sm */
 }
 
 .dark,
