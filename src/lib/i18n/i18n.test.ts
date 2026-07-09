@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { detectLocale, resolveInitialLocale, t } from './index';
-import { dict } from './dict';
+import { dict, type TKey } from './dict';
 
 describe('detectLocale', () => {
   it('maps nl* to nl', () => {
@@ -31,7 +31,7 @@ describe('t', () => {
     expect(t('en', 'menu.search')).toBe(dict.en['menu.search']);
   });
   it('every nl key has an en counterpart', () => {
-    for (const k of Object.keys(dict.nl)) {
+    for (const k of Object.keys(dict.nl) as TKey[]) {
       expect(dict.en[k], `missing en for ${k}`).toBeTypeOf('string');
     }
   });
