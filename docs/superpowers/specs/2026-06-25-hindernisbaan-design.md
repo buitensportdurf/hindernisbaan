@@ -4,13 +4,7 @@
 **Status:** Approved (brainstorm complete; ready for implementation planning)
 **Owner:** [me@felixakkermans.com](mailto:me@felixakkermans.com) (buitensportdurf)
 
-> **2026-07-01 revision** merges decisions from the Claude Design prototype
-> (`Hindernisbaan.dc.html`, project `ece08963…`), which is the superior source
-> of truth for high-level intent and visual language. Changes: added the
-> `landmark` kind (§2), swapped tile providers to CARTO Voyager + Esri (§3–4),
-> added an Internationalization section (§6), and adopted the Durf design system
-> (Lucide + Geist + Bok blauw, shadcn-svelte token path). The prototype is a
-> sketch — treat it as intent, not implementation.
+> **2026-07-01 revision:** added the `landmark` kind (§2), swapped tile providers to CARTO Voyager + Esri (§3–4), added an Internationalization section (§6), and adopted the Durf design system (Lucide + Geist + Bok blauw, shadcn-svelte token path).
 
 ---
 
@@ -98,7 +92,7 @@ Every feature has `properties.kind`, one of:
 
 ### Landmark behavior
 
-Landmarks are typically **points**. Unlike the prototype's decorative (non-interactive) pills, real landmarks are **selectable and editable**: tapping one in Map mode opens the detail panel (name + notes); in Design mode it opens the editor like any feature. They are included in search.
+Landmarks are typically **points**. Landmarks are **selectable and editable**: tapping one in Map mode opens the detail panel (name + notes); in Design mode it opens the editor like any feature. They are included in search.
 
 ### Member rendering
 
@@ -106,7 +100,7 @@ Members do **not** render as standalone map features for visual simplicity. They
 
 ### IDs
 
-Every feature carries a stable `id`, generated once at draw time and preserved across renames so git diffs stay meaningful. Format: sequential, human-readable `DURF-001`, `DURF-002`, … (as in the prototype). The id is a **purely internal / data-layer concern — it is never surfaced in the UI** (detail panel and search show name, kind, and geometry only). Never render raw ids to end users.
+Every feature carries a stable `id`, generated once at draw time and preserved across renames so git diffs stay meaningful. Format: sequential, human-readable `DURF-001`, `DURF-002`, … The id is a **purely internal / data-layer concern — it is never surfaced in the UI** (detail panel and search show name, kind, and geometry only). Never render raw ids to end users.
 
 ### Schema enforcement
 
@@ -161,7 +155,7 @@ Every feature carries a stable `id`, generated once at draw time and preserved a
 - **Obstacle** → a Bok-blauw dot marker; name shown as a hover/tap tooltip
 - **Combi** → a rounded fenced blob sized to its polygon, showing the member **count**; name on tooltip
 - **Landmark** → an **always-visible white pill** (Lucide icon + name), no tap needed to read it
-- **Selection** highlights the active feature with a single emphasis style — **`lift`** (raise + shadow + slight scale). The prototype explored five variants (glow/dim/pulse/lift/ring); MVP ships `lift` only.
+- **Selection** highlights the active feature with a single emphasis style — **`lift`** (raise + shadow + slight scale). MVP ships `lift` only.
 
 ### Detail panel (selection)
 
@@ -296,7 +290,7 @@ The app ships **bilingual: Dutch (default) and English**. Dutch is Durf's primar
 ### Implementation
 
 - A lightweight flat dictionary keyed by string id, one object per locale (`nl`, `en`) — no heavyweight i18n framework for MVP.
-- Every user-facing chrome string goes through the lookup; no hardcoded display copy (the prototype's hardcoded Dutch is the `nl` dictionary's starting content).
+- Every user-facing chrome string goes through the lookup; no hardcoded display copy.
 - Icon-picker and kind labels are chrome (translated); the underlying `kind` / `icon` values stored in data are language-neutral identifiers.
 
 ---
