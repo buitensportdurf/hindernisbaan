@@ -5,13 +5,21 @@
   import { isLocalStorageAvailable, readKey } from '$lib/storage/local';
   import { resolveInitialLocale, LANG_KEY } from '$lib/i18n';
 
-  let storageOk = $state(true);
+  function lsblockPreview(): boolean {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).has('lsblock');
+  }
+
+  let storageOk = $state(!lsblockPreview());
+
   const locale = resolveInitialLocale(
     typeof localStorage !== 'undefined' ? readKey(LANG_KEY) : null,
     typeof navigator !== 'undefined' ? navigator.language : undefined
   );
 
-  onMount(() => { storageOk = isLocalStorageAvailable(); });
+  onMount(() => {
+    storageOk = lsblockPreview() ? false : isLocalStorageAvailable();
+  });
 </script>
 
 {#if !storageOk}
