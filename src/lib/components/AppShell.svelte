@@ -7,6 +7,7 @@
   import { createAppState } from '$lib/state/app.svelte';
   import { fetchFeatures, parseFeatures, LoadError } from '$lib/data/loader';
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
+  import CombiLayer from '$lib/map/CombiLayer.svelte';
 
   const app = createAppState();
 
@@ -46,6 +47,11 @@
   >
     <ObstacleLayer
       features={app.obstacles}
+      selectedId={app.selectedId}
+      onSelect={(id) => app.selectFeature(id)}
+    />
+    <CombiLayer
+      features={app.combis}
       selectedId={app.selectedId}
       onSelect={(id) => app.selectFeature(id)}
     />
