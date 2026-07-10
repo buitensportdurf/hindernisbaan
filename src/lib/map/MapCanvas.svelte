@@ -26,7 +26,7 @@
 
   const CENTER: [number, number] = [52.027, 4.365];
   let el: HTMLDivElement;
-  let map: L.Map | undefined;
+  let map = $state<L.Map | undefined>(undefined);
   let layers: Partial<Record<TileKey, L.TileLayer>> = {};
   let active: TileKey | undefined;
   let failedOnce = false;
