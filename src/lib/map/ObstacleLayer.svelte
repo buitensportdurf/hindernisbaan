@@ -25,45 +25,65 @@
     for (const f of features) {
       const isSelected = f.id === selectedId;
       const g = f.geometry;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let layer: L.CircleMarker | L.Polyline<any> | L.Polygon;
 
       if (g.type === 'Point') {
-        layer = L.circleMarker([g.coordinates[1], g.coordinates[0]], {
-          radius: isSelected ? tweaks.obsRadius : 8,
-          color: '#ffffff',
-          weight: isSelected ? tweaks.obsWeight : 2,
-          fillColor: '#00a5e3',
+        // weight is doubled: paint-order:stroke fill makes only outer half visible → 5px outside border
+        const marker = L.circleMarker([g.coordinates[1], g.coordinates[0]], {
+          radius: isSelected ? tweaks.obsRadius : 5,
+          color: '#00a5e3',
+          weight: isSelected ? tweaks.obsWeight * 2 : 10,
+          fillColor: '#ffffff',
           fillOpacity: 1,
           className: 'obstacle-dot' + (isSelected ? ' selected' : '')
         });
+        marker.bindTooltip(f.properties.name, { direction: 'top', offset: [0, -8], opacity: 1 });
+        marker.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
+        group.addLayer(marker);
+
       } else if (g.type === 'LineString') {
-        layer = L.polyline(
-          g.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]),
-          {
-            color: '#00a5e3',
-            weight: isSelected ? tweaks.lineWeight : 3,
-            lineCap: 'round',
-            lineJoin: 'round',
-            className: 'obstacle-line' + (isSelected ? ' selected' : '')
-          }
-        );
+        const coords = g.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+        const strokeW = isSelected ? tweaks.lineWeight : 5;
+
+        // Outer colored border + inner white fill = road-style rendering
+        group.addLayer(L.polyline(coords, {
+          color: '#00a5e3',
+          weight: strokeW + 2,
+          lineCap: 'round',
+          lineJoin: 'round',
+          interactive: false,
+          className: 'obstacle-line' + (isSelected ? ' selected' : '')
+        }));
+        group.addLayer(L.polyline(coords, {
+          color: '#ffffff',
+          weight: strokeW,
+          lineCap: 'round',
+          lineJoin: 'round',
+          interactive: false
+        }));
+
+        // Transparent wide hit area — ±10px tolerance around line
+        const hit = L.polyline(coords, { weight: 20, opacity: 0, fillOpacity: 0 });
+        hit.bindTooltip(f.properties.name, { direction: 'top', offset: [0, -8], opacity: 1 });
+        hit.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
+        group.addLayer(hit);
+
       } else {
-        layer = L.polygon(
+        // Polygon — fill area is already a natural hit target
+        // weight doubled for same paint-order trick as dots
+        const poly = L.polygon(
           g.coordinates[0].map(([lng, lat]) => [lat, lng] as [number, number]),
           {
             color: '#00a5e3',
-            weight: isSelected ? tweaks.polyWeight : 2,
-            fillColor: '#00a5e3',
-            fillOpacity: isSelected ? tweaks.polyFillOpacity : 0.1,
+            weight: isSelected ? tweaks.polyWeight * 2 : 10,
+            fillColor: '#ffffff',
+            fillOpacity: 1,
             className: 'obstacle-poly' + (isSelected ? ' selected' : '')
           }
         );
+        poly.bindTooltip(f.properties.name, { direction: 'top', offset: [0, -8], opacity: 1 });
+        poly.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
+        group.addLayer(poly);
       }
-
-      layer.bindTooltip(f.properties.name, { direction: 'top', offset: [0, -8], opacity: 1 });
-      layer.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
-      group.addLayer(layer);
     }
 
     return () => group.remove();
