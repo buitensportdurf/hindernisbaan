@@ -8,6 +8,7 @@
   import { fetchFeatures, parseFeatures, LoadError } from '$lib/data/loader';
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
+  import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
 
   const app = createAppState();
 
@@ -52,6 +53,11 @@
     />
     <CombiLayer
       features={app.combis}
+      selectedId={app.selectedId}
+      onSelect={(id) => app.selectFeature(id)}
+    />
+    <LandmarkLayer
+      features={app.landmarks}
       selectedId={app.selectedId}
       onSelect={(id) => app.selectFeature(id)}
     />
