@@ -7,7 +7,8 @@
   import { Card, CardDescription, CardTitle } from '$lib/components/ui/card';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-  import LanguagesIcon from '@lucide/svelte/icons/languages';
+  import DatabaseIcon from '@lucide/svelte/icons/database';
+import LanguagesIcon from '@lucide/svelte/icons/languages';
   import LayersIcon from '@lucide/svelte/icons/layers';
   import MapIcon from '@lucide/svelte/icons/map';
   import MenuIcon from '@lucide/svelte/icons/menu';
@@ -190,6 +191,21 @@
               {/each}
             </div>
           </section>
+
+          {#if app.dataVersion !== null}
+            <section class="flex flex-col gap-1.5">
+              <p class={sectionLabel}>
+                <DatabaseIcon class="size-3" />
+                {t(app.locale, 'settings.mapdata')}
+              </p>
+              <p class="px-1 text-xs text-muted-foreground">
+                {t(app.locale, 'settings.mapdata.created')}
+                {app.dataVersion}
+                · {app.dataCount}
+                {t(app.locale, 'settings.mapdata.count')}
+              </p>
+            </section>
+          {/if}
         {/if}
           </div>
         </div>

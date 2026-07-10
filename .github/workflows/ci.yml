@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Check, lint, validate, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check (svelte-check)
+        run: pnpm run check
+
+      - name: Lint + format
+        run: |
+          pnpm exec eslint . --max-warnings 0
+          pnpm exec prettier --check .
+
+      - name: Validate obstacles.geojson against schema
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync } from 'fs';
+          import Ajv from 'ajv';
+
+          const schema = JSON.parse(readFileSync('src/lib/data/obstacles.schema.json', 'utf8'));
+          const data = JSON.parse(readFileSync('static/data/obstacles.geojson', 'utf8'));
+
+          const ajv = new Ajv();
+          const validate = ajv.compile(schema);
+
+          if (!validate(data)) {
+            console.error('Schema validation failed:');
+            console.error(ajv.errorsText(validate.errors));
+            process.exit(1);
+          }
+          console.log('obstacles.geojson is valid ✓');
+          EOF
+
+      - name: Build
+        run: pnpm run build
