@@ -6,6 +6,7 @@
   import TilesDownDialog from './TilesDownDialog.svelte';
   import { createAppState } from '$lib/state/app.svelte';
   import { fetchFeatures, parseFeatures, LoadError } from '$lib/data/loader';
+  import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
 
   const app = createAppState();
 
@@ -43,6 +44,11 @@
     onBothTilesDown={() => (tilesDown = true)}
     onDeselect={() => app.selectFeature(null)}
   >
+    <ObstacleLayer
+      features={app.obstacles}
+      selectedId={app.selectedId}
+      onSelect={(id) => app.selectFeature(id)}
+    />
   </MapCanvas>
 
   <Menu {app} />
