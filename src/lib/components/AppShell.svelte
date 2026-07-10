@@ -9,6 +9,7 @@
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
   import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
+  import TweaksPanel from '$lib/map/TweaksPanel.svelte';
 
   const app = createAppState();
 
@@ -76,5 +77,9 @@
 
   {#if tilesDown}
     <TilesDownDialog locale={app.locale} onDismiss={() => (tilesDown = false)} />
+  {/if}
+
+  {#if import.meta.env.DEV && app.selectedId !== null}
+    <TweaksPanel />
   {/if}
 </div>
