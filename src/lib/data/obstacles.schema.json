@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "obstacles.schema.json",
+  "title": "Hindernisbaan Feature Collection",
+  "type": "object",
+  "required": ["type", "version", "features"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "type": "string", "const": "FeatureCollection" },
+    "version": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "features": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Feature" }
+    }
+  },
+  "$defs": {
+    "Feature": {
+      "type": "object",
+      "required": ["type", "id", "geometry", "properties"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "const": "Feature" },
+        "id": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+        "geometry": { "$ref": "#/$defs/Geometry" },
+        "properties": { "$ref": "#/$defs/Properties" }
+      }
+    },
+    "Geometry": {
+      "oneOf": [
+        { "$ref": "#/$defs/PointGeometry" },
+        { "$ref": "#/$defs/LineStringGeometry" },
+        { "$ref": "#/$defs/PolygonGeometry" }
+      ]
+    },
+    "PointGeometry": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "const": "Point" },
+        "coordinates": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 3
+        }
+      }
+    },
+    "LineStringGeometry": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "const": "LineString" },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 3
+          },
+          "minItems": 2
+        }
+      }
+    },
+    "PolygonGeometry": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "const": "Polygon" },
+        "coordinates": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "number" },
+              "minItems": 2,
+              "maxItems": 3
+            },
+            "minItems": 4
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "Properties": {
+      "oneOf": [
+        { "$ref": "#/$defs/ObstacleProperties" },
+        { "$ref": "#/$defs/CombiProperties" },
+        { "$ref": "#/$defs/LandmarkProperties" }
+      ]
+    },
+    "ObstacleProperties": {
+      "type": "object",
+      "required": ["name", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "const": "obstacle" },
+        "notes": { "type": "string" }
+      }
+    },
+    "CombiProperties": {
+      "type": "object",
+      "required": ["name", "kind", "members"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "const": "combi" },
+        "notes": { "type": "string" },
+        "members": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Member" },
+          "minItems": 1
+        }
+      }
+    },
+    "LandmarkProperties": {
+      "type": "object",
+      "required": ["name", "kind", "icon"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "const": "landmark" },
+        "icon": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" }
+      }
+    },
+    "Member": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" },
+        "position": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    }
+  }
+}

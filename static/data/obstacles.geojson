@@ -1,0 +1,94 @@
+{
+  "type": "FeatureCollection",
+  "version": "2026-07-09",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0001-4000-8000-e0f1a2b3c4d5",
+      "geometry": { "type": "Point", "coordinates": [4.3648, 52.0272] },
+      "properties": { "name": "Klimrek", "kind": "obstacle" }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0002-4000-8000-e0f1a2b3c4d5",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[4.3651, 52.027], [4.3653, 52.0271], [4.3655, 52.027]]
+      },
+      "properties": {
+        "name": "Balkenpad",
+        "kind": "obstacle",
+        "notes": "Vijf balken op gelijke hoogte, gevorderd niveau"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0003-4000-8000-e0f1a2b3c4d5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [4.366, 52.0268],
+            [4.3664, 52.0268],
+            [4.3664, 52.027],
+            [4.366, 52.027],
+            [4.366, 52.0268]
+          ]
+        ]
+      },
+      "properties": { "name": "Zandbak", "kind": "obstacle" }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0004-4000-8000-e0f1a2b3c4d5",
+      "geometry": { "type": "Point", "coordinates": [4.3656, 52.0267] },
+      "properties": {
+        "name": "Touwenparcours",
+        "kind": "obstacle",
+        "notes": "Zes stations, begin bij de paal met het rode lint"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0005-4000-8000-e0f1a2b3c4d5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [4.3643, 52.0274],
+            [4.365, 52.0274],
+            [4.365, 52.0278],
+            [4.3643, 52.0278],
+            [4.3643, 52.0274]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Trapeziumzone",
+        "kind": "combi",
+        "members": [
+          { "name": "Schommel", "position": [4.3645, 52.0275] },
+          { "name": "Ladder", "position": [4.3647, 52.0276] },
+          { "name": "Touw", "position": [4.3649, 52.0275] }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0006-4000-8000-e0f1a2b3c4d5",
+      "geometry": { "type": "Point", "coordinates": [4.3638, 52.0268] },
+      "properties": { "name": "Ingang", "kind": "landmark", "icon": "flag" }
+    },
+    {
+      "type": "Feature",
+      "id": "a1b2c3d4-0007-4000-8000-e0f1a2b3c4d5",
+      "geometry": { "type": "Point", "coordinates": [4.367, 52.0265] },
+      "properties": {
+        "name": "Parkeerplaats",
+        "kind": "landmark",
+        "icon": "car",
+        "notes": "Gratis parkeren, max 2 uur"
+      }
+    }
+  ]
+}
