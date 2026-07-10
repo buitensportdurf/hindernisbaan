@@ -9,11 +9,20 @@
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
   import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
-  import TweaksPanel from '$lib/map/TweaksPanel.svelte';
-
   const app = createAppState();
 
   let tilesDown = $state(false);
+
+  const LOAD_ERROR_PREVIEWS: Record<string, string> = {
+    network: 'Failed to fetch',
+    json: 'Invalid JSON in file',
+    schema: "Invalid map data: data must have required property 'features'"
+  };
+
+  function devSearchParams(): URLSearchParams | null {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return null;
+    return new URLSearchParams(window.location.search);
+  }
 
   async function load() {
     app.setLoadState('loading');
@@ -36,10 +45,19 @@
     }
   }
 
-  onMount(load);
+  onMount(() => {
+    const params = devSearchParams();
+    const loaderrKey = params?.get('loaderr');
+    if (loaderrKey && loaderrKey in LOAD_ERROR_PREVIEWS) {
+      app.setLoadError(LOAD_ERROR_PREVIEWS[loaderrKey]);
+    } else {
+      load();
+    }
+    if (params?.has('tilesdown')) tilesDown = true;
+  });
 </script>
 
-<div class="fixed inset-0 overflow-hidden">
+<div class="fixed inset-0 overflow-hidden" class:has-selection={app.selectedId !== null}>
   <MapCanvas
     tile={app.tile}
     fitFeatures={app.loadState === 'loaded' ? app.features : null}
@@ -79,7 +97,5 @@
     <TilesDownDialog locale={app.locale} onDismiss={() => (tilesDown = false)} />
   {/if}
 
-  {#if import.meta.env.DEV && app.selectedId !== null}
-    <TweaksPanel />
-  {/if}
+
 </div>
