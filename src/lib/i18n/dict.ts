@@ -20,7 +20,14 @@ export const dict = {
     'map.loading': 'Kaart laden…',
     'ls.title': 'localStorage vereist',
     'ls.body':
-      'Deze app heeft een browser met localStorage nodig om instellingen en concepten op te slaan. Schakel privémodus uit of gebruik een moderne browser.'
+      'Deze app heeft een browser met localStorage nodig om instellingen en concepten op te slaan. Schakel privémodus uit of gebruik een moderne browser.',
+    'load.title': 'Kaartgegevens niet beschikbaar',
+    'load.body': 'De kaartgegevens konden niet worden geladen.',
+    'load.retry': 'Opnieuw proberen',
+    'load.import': 'Ander bestand importeren…',
+    'tiles.down.title': 'Kaartlagen niet beschikbaar',
+    'tiles.down.body': 'Probeer het later opnieuw. De obstakels zijn nog zichtbaar.',
+    'tiles.down.dismiss': 'Sluiten'
   },
   en: {
     'app.title': 'Obstacle map',
@@ -43,7 +50,14 @@ export const dict = {
     'map.loading': 'Loading map…',
     'ls.title': 'localStorage required',
     'ls.body':
-      'This app needs a browser with localStorage to save settings and drafts. Turn off private mode or use a modern browser.'
+      'This app needs a browser with localStorage to save settings and drafts. Turn off private mode or use a modern browser.',
+    'load.title': 'Map data unavailable',
+    'load.body': 'The map data could not be loaded.',
+    'load.retry': 'Try again',
+    'load.import': 'Import another file…',
+    'tiles.down.title': 'Map tiles unavailable',
+    'tiles.down.body': 'Try again later. Obstacles are still visible.',
+    'tiles.down.dismiss': 'Dismiss'
   }
 } as const;
 

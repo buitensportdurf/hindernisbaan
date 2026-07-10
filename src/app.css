@@ -72,3 +72,71 @@ html, body { margin: 0; height: 100%; }
     transition: height 0.22s cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
+
+/* Selected-state design tokens — defaults; TweaksPanel overrides via setProperty() in dev */
+:root {
+  --sel-obs-glow: drop-shadow(0 2px 8px rgba(0, 165, 227, 0.7));
+  --sel-line-glow: drop-shadow(0 2px 8px rgba(0, 165, 227, 0.5));
+  --sel-poly-glow: drop-shadow(0 2px 10px rgba(0, 165, 227, 0.5));
+  --sel-combi-glow: drop-shadow(0 2px 10px rgba(0, 165, 227, 0.5));
+  --sel-landmark-scale: 1.06;
+  --sel-landmark-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --sel-landmark-y-lift: 8px;
+}
+
+/* Obstacle — Point */
+.obstacle-dot { transition: r 150ms ease, stroke-width 150ms ease; }
+.obstacle-dot.selected { filter: var(--sel-obs-glow); }
+
+/* Obstacle — LineString */
+.obstacle-line { transition: stroke-width 150ms ease; }
+.obstacle-line.selected { filter: var(--sel-line-glow); }
+
+/* Obstacle — Polygon */
+.obstacle-poly { transition: stroke-width 150ms ease; }
+.obstacle-poly.selected { filter: var(--sel-poly-glow); }
+
+/* Combi polygon fence */
+.combi-fence { transition: stroke-width 150ms ease; }
+.combi-fence.selected { filter: var(--sel-combi-glow); }
+
+/* Combi member count badge */
+.combi-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 12px;
+  background: #00a5e3;
+  color: #fff;
+  font: 700 12px/1 'Geist', sans-serif;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+/* Landmark pill */
+.landmark-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px 4px 6px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+  font: 600 12px/1 'Geist', sans-serif;
+  color: #373737;
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 6px));
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.landmark-pill svg { flex-shrink: 0; width: 13px; height: 13px; color: #00a5e3; }
+.landmark-marker.selected .landmark-pill {
+  transform: translate(-50%, calc(-100% - var(--sel-landmark-y-lift))) scale(var(--sel-landmark-scale));
+  box-shadow: var(--sel-landmark-shadow);
+}

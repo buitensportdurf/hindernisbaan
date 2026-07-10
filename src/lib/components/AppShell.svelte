@@ -1,12 +1,62 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import MapCanvas from '$lib/map/MapCanvas.svelte';
   import Menu from './Menu.svelte';
+  import LoadFailDialog from './LoadFailDialog.svelte';
+  import TilesDownDialog from './TilesDownDialog.svelte';
   import { createAppState } from '$lib/state/app.svelte';
+  import { fetchFeatures, parseFeatures, LoadError } from '$lib/data/loader';
 
   const app = createAppState();
+
+  let tilesDown = $state(false);
+
+  async function load() {
+    app.setLoadState('loading');
+    try {
+      const col = await fetchFeatures();
+      app.setData(col);
+    } catch (err) {
+      app.setLoadError(err instanceof LoadError ? err.message : 'Onbekende fout / Unknown error');
+    }
+  }
+
+  async function handleImport(text: string) {
+    try {
+      const col = await parseFeatures(text);
+      app.setData(col);
+    } catch (err) {
+      app.setLoadError(
+        err instanceof LoadError ? err.message : 'Ongeldig bestand / Invalid file'
+      );
+    }
+  }
+
+  onMount(load);
 </script>
 
 <div class="fixed inset-0 overflow-hidden">
-  <MapCanvas tile={app.tile} onFailover={(n) => app.failoverTile(n)} />
+  <MapCanvas
+    tile={app.tile}
+    fitFeatures={app.loadState === 'loaded' ? app.features : null}
+    onFailover={(n) => app.failoverTile(n)}
+    onBothTilesDown={() => (tilesDown = true)}
+    onDeselect={() => app.selectFeature(null)}
+  >
+  </MapCanvas>
+
   <Menu {app} />
+
+  {#if app.loadState === 'error' && app.loadError}
+    <LoadFailDialog
+      locale={app.locale}
+      error={app.loadError}
+      onRetry={load}
+      onImport={handleImport}
+    />
+  {/if}
+
+  {#if tilesDown}
+    <TilesDownDialog locale={app.locale} onDismiss={() => (tilesDown = false)} />
+  {/if}
 </div>
