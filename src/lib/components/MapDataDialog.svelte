@@ -41,12 +41,25 @@
     (e.target as HTMLInputElement).value = '';
     onClose();
   }
+
+  // Menu.svelte's sliding panel is CSS-transformed, which makes it the
+  // containing block for `position: fixed` descendants — reparent to
+  // <body> so this overlay covers the real viewport instead.
+  function portal(node: HTMLElement) {
+    document.body.appendChild(node);
+    return {
+      destroy() {
+        node.remove();
+      }
+    };
+  }
 </script>
 
 <div
   class="fixed inset-0 z-[1700] flex items-center justify-center bg-black/60 p-5"
   role="presentation"
   onclick={onClose}
+  use:portal
 >
   <div
     class="flex w-[min(92vw,380px)] flex-col gap-4 rounded-2xl bg-white p-6 shadow-xl"

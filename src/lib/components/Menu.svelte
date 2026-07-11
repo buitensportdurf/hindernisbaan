@@ -4,7 +4,8 @@
   import type { AppState } from '$lib/state/app.svelte';
   import { Button } from '$lib/components/ui/button';
   import { cn } from '$lib/utils';
-  import { Card, CardDescription, CardTitle } from '$lib/components/ui/card';
+  import { Card, CardTitle } from '$lib/components/ui/card';
+  import MapDataStatus from './MapDataStatus.svelte';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import DatabaseIcon from '@lucide/svelte/icons/database';
@@ -16,7 +17,13 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
   import SettingsIcon from '@lucide/svelte/icons/settings';
   import XIcon from '@lucide/svelte/icons/x';
 
-  let { app }: { app: AppState } = $props();
+  let {
+    app,
+    onImport
+  }: {
+    app: AppState;
+    onImport: (text: string) => void;
+  } = $props();
 
   const PANEL_MS = 220;
   let panelMounted = $state(false);
@@ -118,9 +125,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
                 <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
                   {t(app.locale, 'app.title')}
                 </CardTitle>
-                <CardDescription class="text-xs leading-snug">
-                  {t(app.locale, 'app.subtitle')} · v2026.juni
-                </CardDescription>
+                <MapDataStatus {app} {onImport} />
               {:else}
                 <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
                   {t(app.locale, 'settings.title')}
@@ -192,20 +197,13 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
             </div>
           </section>
 
-          {#if app.dataVersion !== null}
-            <section class="flex flex-col gap-1.5">
-              <p class={sectionLabel}>
-                <DatabaseIcon class="size-3" />
-                {t(app.locale, 'settings.mapdata')}
-              </p>
-              <p class="px-1 text-xs text-muted-foreground">
-                {t(app.locale, 'settings.mapdata.created')}
-                {app.dataVersion}
-                · {app.dataCount}
-                {t(app.locale, 'settings.mapdata.count')}
-              </p>
-            </section>
-          {/if}
+          <section class="flex flex-col gap-1.5">
+            <p class={sectionLabel}>
+              <DatabaseIcon class="size-3" />
+              {t(app.locale, 'settings.mapdata')}
+            </p>
+            <MapDataStatus {app} {onImport} />
+          </section>
         {/if}
           </div>
         </div>

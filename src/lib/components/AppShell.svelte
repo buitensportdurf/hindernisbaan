@@ -82,7 +82,7 @@
     />
   </MapCanvas>
 
-  <Menu {app} />
+  <Menu {app} onImport={handleImport} />
 
   {#if app.loadState === 'error' && app.loadError}
     <LoadFailDialog

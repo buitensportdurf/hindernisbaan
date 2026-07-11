@@ -1,7 +1,6 @@
 export const dict = {
   nl: {
     'app.title': 'Hindernis kaart',
-    'app.subtitle': 'Buitensport Durf',
     'menu.search': 'Zoeken…',
     'menu.design': 'Ontwerp',
     'menu.test': 'Test',
@@ -36,7 +35,6 @@ export const dict = {
   },
   en: {
     'app.title': 'Obstacle map',
-    'app.subtitle': 'Buitensport Durf',
     'menu.search': 'Search…',
     'menu.design': 'Design',
     'menu.test': 'Test',
