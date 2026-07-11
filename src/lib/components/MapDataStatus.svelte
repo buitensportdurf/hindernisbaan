@@ -20,10 +20,10 @@
   {@const version = app.dataVersion}
   <Button
     variant="link"
-    class="h-auto w-full min-w-0 justify-start p-0 text-xs"
+    class="group h-auto w-full min-w-0 justify-start p-0 text-xs no-underline hover:no-underline"
     onclick={() => (open = true)}
   >
-    <span class="truncate">{club} · v{version}</span>
+    <span class="truncate group-hover:underline">{club} · v{version}</span>
   </Button>
 
   {#if open}
