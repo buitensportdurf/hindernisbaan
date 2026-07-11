@@ -26,6 +26,7 @@ export function createAppState() {
 
   let features = $state<HindernisFeature[]>([]);
   let dataVersion = $state<string | null>(null);
+  let dataClub = $state<string | null>(null);
   let selectedId = $state<string | null>(null);
   let loadError = $state<string | null>(null);
   let loadState = $state<LoadState>('idle');
@@ -37,6 +38,7 @@ export function createAppState() {
     get menuLevel() { return menuLevel; },
     get features() { return features; },
     get dataVersion() { return dataVersion; },
+    get dataClub() { return dataClub; },
     get dataCount() { return features.length; },
     get selectedId() { return selectedId; },
     get loadError() { return loadError; },
@@ -65,6 +67,7 @@ export function createAppState() {
     setData(col: FeatureCollection) {
       features = col.features;
       dataVersion = col.version;
+      dataClub = col.club;
       loadError = null;
       loadState = 'loaded';
     },

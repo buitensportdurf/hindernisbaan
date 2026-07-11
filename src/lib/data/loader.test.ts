@@ -3,6 +3,7 @@ import { fetchFeatures, parseFeatures, LoadError } from './loader';
 
 const validCollection = {
   type: 'FeatureCollection',
+  club: 'Buitensport Durf',
   version: '2026-07-09',
   features: [
     {
@@ -35,6 +36,11 @@ describe('parseFeatures', () => {
 
   it('throws LoadError when version is missing', async () => {
     const { version: _v, ...bad } = validCollection;
+    await expect(parseFeatures(JSON.stringify(bad))).rejects.toBeInstanceOf(LoadError);
+  });
+
+  it('throws LoadError when club is missing', async () => {
+    const { club: _c, ...bad } = validCollection;
     await expect(parseFeatures(JSON.stringify(bad))).rejects.toBeInstanceOf(LoadError);
   });
 

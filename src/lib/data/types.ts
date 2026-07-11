@@ -65,6 +65,7 @@ export type HindernisFeature = ObstacleFeature | CombiFeature | LandmarkFeature;
 
 export interface FeatureCollection {
   type: 'FeatureCollection';
+  club: string;
   version: string;
   features: HindernisFeature[];
 }

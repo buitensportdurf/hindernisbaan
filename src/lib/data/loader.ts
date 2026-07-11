@@ -21,8 +21,10 @@ function assertValid(data: unknown): asserts data is FeatureCollection {
   }
 }
 
+export const OBSTACLES_URL = '/data/obstacles.geojson';
+
 export async function fetchFeatures(
-  url = '/data/obstacles.geojson'
+  url = OBSTACLES_URL
 ): Promise<FeatureCollection> {
   let data: unknown;
   try {
