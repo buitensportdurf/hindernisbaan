@@ -44,7 +44,20 @@ export const dict = {
     'design.tool.polygon': 'Vlak tekenen',
     'design.tool.rectangle': 'Combi-gebied tekenen',
     'design.tool.edit': 'Bewerken',
-    'design.tool.remove': 'Verwijderen'
+    'design.tool.remove': 'Verwijderen',
+    'design.editor.untitled': 'Naamloos',
+    'design.editor.name': 'Naam',
+    'design.editor.kind': 'Type',
+    'design.editor.icon': 'Icoon',
+    'design.editor.notes': 'Notities',
+    'design.editor.members': 'Onderdelen',
+    'design.editor.members.add': 'Toevoegen',
+    'design.editor.members.name': 'Naam',
+    'design.editor.members.notes': 'Notitie (optioneel)',
+    'design.editor.delete': 'Verwijderen',
+    'design.kind.obstacle': 'Hindernis',
+    'design.kind.combi': 'Combi',
+    'design.kind.landmark': 'Herkenningspunt'
   },
   en: {
     'app.title': 'Obstacle map',
@@ -91,7 +104,20 @@ export const dict = {
     'design.tool.polygon': 'Draw shape',
     'design.tool.rectangle': 'Draw combi area',
     'design.tool.edit': 'Edit',
-    'design.tool.remove': 'Delete'
+    'design.tool.remove': 'Delete',
+    'design.editor.untitled': 'Untitled',
+    'design.editor.name': 'Name',
+    'design.editor.kind': 'Kind',
+    'design.editor.icon': 'Icon',
+    'design.editor.notes': 'Notes',
+    'design.editor.members': 'Members',
+    'design.editor.members.add': 'Add',
+    'design.editor.members.name': 'Name',
+    'design.editor.members.notes': 'Note (optional)',
+    'design.editor.delete': 'Delete',
+    'design.kind.obstacle': 'Obstacle',
+    'design.kind.combi': 'Combi',
+    'design.kind.landmark': 'Landmark'
   }
 } as const;
 
