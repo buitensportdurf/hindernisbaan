@@ -4,11 +4,13 @@
   import type { Snippet } from 'svelte';
   import { buttonVariants, type ButtonSize, type ButtonVariant } from './button-variants';
 
-  type Props = (HTMLButtonAttributes | HTMLAnchorAttributes) & {
+  type AnchorProps = HTMLAnchorAttributes & { href: string };
+  type NativeButtonProps = HTMLButtonAttributes & { href?: undefined };
+
+  type Props = (AnchorProps | NativeButtonProps) & {
     variant?: ButtonVariant;
     size?: ButtonSize;
     class?: string;
-    href?: string;
     children?: Snippet;
   };
 
