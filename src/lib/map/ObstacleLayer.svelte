@@ -15,15 +15,16 @@
   } = $props();
 
   useMapLayer((group) => {
-    function attach(layer: L.Layer, id: string, name: string) {
-      layer.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(id); });
+    function attach(layer: L.Layer, f: ObstacleFeature) {
+      (layer as L.Layer & { feature?: ObstacleFeature }).feature = f;
+      layer.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
       group.addLayer(layer);
-      addSvgTitle(layer, name);
+      addSvgTitle(layer, f.properties.name);
     }
 
     for (const f of features) {
       const sel = f.id === selectedId;
-      const { id, properties: { name }, geometry } = f;
+      const { geometry } = f;
 
       if (geometry.type === 'Point') {
         const [lng, lat] = geometry.coordinates;
@@ -33,7 +34,7 @@
             radius: 5,
             className: 'obstacle-dot' + (sel ? ' selected' : '')
           }),
-          id, name
+          f
         );
       } else if (geometry.type === 'LineString') {
         const latlngs = geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
@@ -49,7 +50,7 @@
         }));
         attach(
           L.polyline(latlngs, { weight: 20, opacity: 0, fillOpacity: 0 }),
-          id, name
+          f
         );
       } else if (geometry.type === 'Polygon') {
         const latlngs = geometry.coordinates.map((ring) =>
@@ -60,7 +61,7 @@
             ...ENTITY_STYLE,
             className: 'obstacle-poly' + (sel ? ' selected' : '')
           }),
-          id, name
+          f
         );
       }
     }

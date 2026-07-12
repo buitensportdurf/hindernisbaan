@@ -71,6 +71,7 @@
         (polygon as any)._path.setAttribute('d', roundedPolyPath(parts, Math.min(w, h) / 2));
       };
 
+      (polygon as L.Layer & { feature?: CombiFeature }).feature = f;
       polygon.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
       group.addLayer(polygon);
       addSvgTitle(polygon, f.properties.name);

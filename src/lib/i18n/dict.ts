@@ -38,7 +38,13 @@ export const dict = {
     'draft.toast.discarded': 'Concept verwijderd',
     'design.icon.placeholder': 'Kies een icoon…',
     'design.icon.search': 'Zoek icoon…',
-    'design.icon.empty': 'Geen iconen gevonden'
+    'design.icon.empty': 'Geen iconen gevonden',
+    'design.tool.point': 'Punt tekenen',
+    'design.tool.line': 'Lijn tekenen',
+    'design.tool.polygon': 'Vlak tekenen',
+    'design.tool.rectangle': 'Combi-gebied tekenen',
+    'design.tool.edit': 'Bewerken',
+    'design.tool.remove': 'Verwijderen'
   },
   en: {
     'app.title': 'Obstacle map',
@@ -79,7 +85,13 @@ export const dict = {
     'draft.toast.discarded': 'Draft discarded',
     'design.icon.placeholder': 'Choose an icon…',
     'design.icon.search': 'Search icons…',
-    'design.icon.empty': 'No icons found'
+    'design.icon.empty': 'No icons found',
+    'design.tool.point': 'Draw point',
+    'design.tool.line': 'Draw line',
+    'design.tool.polygon': 'Draw shape',
+    'design.tool.rectangle': 'Draw combi area',
+    'design.tool.edit': 'Edit',
+    'design.tool.remove': 'Delete'
   }
 } as const;
 

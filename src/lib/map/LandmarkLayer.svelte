@@ -35,6 +35,7 @@
         }),
         riseOnHover: true
       });
+      (marker as L.Layer & { feature?: LandmarkFeature }).feature = f;
       marker.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
       group.addLayer(marker);
     }
