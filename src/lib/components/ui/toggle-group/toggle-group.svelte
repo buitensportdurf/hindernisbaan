@@ -2,14 +2,14 @@
   import { ToggleGroup as ToggleGroupPrimitive } from 'bits-ui';
   import { cn } from '$lib/utils';
 
-  type SingleSelectRootProps = Omit<ToggleGroupPrimitive.RootProps & { type: 'single' }, 'type'>;
+  export type RootProps = Omit<ToggleGroupPrimitive.RootProps & { type: 'single' }, 'type'>;
 
   let {
     class: className,
     value = $bindable(''),
     children,
     ...restProps
-  }: SingleSelectRootProps & { type?: 'single' } = $props();
+  }: RootProps & { type?: 'single' } = $props();
 </script>
 
 <ToggleGroupPrimitive.Root

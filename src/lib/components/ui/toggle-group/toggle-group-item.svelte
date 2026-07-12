@@ -15,7 +15,7 @@
 
 <ToggleGroupPrimitive.Item
   data-slot="toggle-group-item"
-  class={cn(toggleGroupItemVariants({}), className)}
+  class={cn(toggleGroupItemVariants(), className)}
   {...restProps}
 >
   {@render children?.()}

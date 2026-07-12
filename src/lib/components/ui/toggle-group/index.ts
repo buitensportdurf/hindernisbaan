@@ -1,4 +1,3 @@
-import { ToggleGroup as ToggleGroupPrimitive } from 'bits-ui';
 import Root from './toggle-group.svelte';
 import Item from './toggle-group-item.svelte';
 
@@ -10,4 +9,4 @@ export {
   Item as ToggleGroupItem
 };
 
-export type RootProps = ToggleGroupPrimitive.RootProps;
+export type { RootProps } from './toggle-group.svelte';
