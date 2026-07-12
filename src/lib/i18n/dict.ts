@@ -33,7 +33,9 @@ export const dict = {
     'load.import': 'Ander bestand importeren…',
     'tiles.down.title': 'Kaartlagen niet beschikbaar',
     'tiles.down.body': 'Probeer het later opnieuw. De obstakels zijn nog zichtbaar.',
-    'tiles.down.dismiss': 'Sluiten'
+    'tiles.down.dismiss': 'Sluiten',
+    'draft.toast.invalid': 'Concept heeft een probleem',
+    'draft.toast.discarded': 'Concept verwijderd'
   },
   en: {
     'app.title': 'Obstacle map',
@@ -69,7 +71,9 @@ export const dict = {
     'load.import': 'Import another file…',
     'tiles.down.title': 'Map tiles unavailable',
     'tiles.down.body': 'Try again later. Obstacles are still visible.',
-    'tiles.down.dismiss': 'Dismiss'
+    'tiles.down.dismiss': 'Dismiss',
+    'draft.toast.invalid': 'Draft has a problem',
+    'draft.toast.discarded': 'Draft discarded'
   }
 } as const;
 

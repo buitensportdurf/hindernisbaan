@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Snippet } from 'svelte';
+  import { Toaster } from 'svelte-sonner';
   import MapCanvas from '$lib/map/MapCanvas.svelte';
   import Menu from './Menu.svelte';
   import LoadFailDialog from './LoadFailDialog.svelte';
@@ -76,6 +77,7 @@
 </script>
 
 <div class="fixed inset-0 overflow-hidden" class:has-selection={app.selectedId !== null}>
+  <Toaster position="bottom-center" richColors closeButton />
   <MapCanvas
     tile={app.tile}
     fitFeatures={app.loadState === 'loaded' ? app.features : null}
