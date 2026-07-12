@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import type { Snippet } from 'svelte';
   import MapCanvas from '$lib/map/MapCanvas.svelte';
   import Menu from './Menu.svelte';
   import LoadFailDialog from './LoadFailDialog.svelte';
@@ -9,6 +10,23 @@
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
   import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
+
+  let {
+    mode = 'map',
+    hasDraftProblem = false,
+    toolbar,
+    editorPanel,
+    menuStatusExtra,
+    mapLayers
+  }: {
+    mode?: 'map' | 'design';
+    hasDraftProblem?: boolean;
+    toolbar?: Snippet;
+    editorPanel?: Snippet;
+    menuStatusExtra?: Snippet;
+    mapLayers?: Snippet;
+  } = $props();
+
   const app = createAppState();
 
   let tilesDown = $state(false);
@@ -65,24 +83,30 @@
     onBothTilesDown={() => (tilesDown = true)}
     onDeselect={() => app.selectFeature(null)}
   >
-    <ObstacleLayer
-      features={app.obstacles}
-      selectedId={app.selectedId}
-      onSelect={(id) => app.selectFeature(id)}
-    />
-    <CombiLayer
-      features={app.combis}
-      selectedId={app.selectedId}
-      onSelect={(id) => app.selectFeature(id)}
-    />
-    <LandmarkLayer
-      features={app.landmarks}
-      selectedId={app.selectedId}
-      onSelect={(id) => app.selectFeature(id)}
-    />
+    {#if mode === 'map'}
+      <ObstacleLayer
+        features={app.obstacles}
+        selectedId={app.selectedId}
+        onSelect={(id) => app.selectFeature(id)}
+      />
+      <CombiLayer
+        features={app.combis}
+        selectedId={app.selectedId}
+        onSelect={(id) => app.selectFeature(id)}
+      />
+      <LandmarkLayer
+        features={app.landmarks}
+        selectedId={app.selectedId}
+        onSelect={(id) => app.selectFeature(id)}
+      />
+    {/if}
+    {@render mapLayers?.()}
   </MapCanvas>
 
-  <Menu {app} onImport={handleImport} />
+  <Menu {app} onImport={handleImport} {mode} statusExtra={menuStatusExtra} />
+
+  {@render toolbar?.()}
+  {@render editorPanel?.()}
 
   {#if app.loadState === 'error' && app.loadError}
     <LoadFailDialog

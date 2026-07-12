@@ -100,7 +100,7 @@ Members do **not** render as standalone map features for visual simplicity. They
 
 ### IDs
 
-Every feature carries a stable `id`, generated once at draw time and preserved across renames so git diffs stay meaningful. Format: sequential, human-readable `DURF-001`, `DURF-002`, … The id is a **purely internal / data-layer concern — it is never surfaced in the UI** (detail panel and search show name, kind, and geometry only). Never render raw ids to end users.
+Every feature carries a stable `id`, generated once at draw time and preserved across renames so git diffs stay meaningful. Format: **UUID v4** (`crypto.randomUUID()`), matching the JSON Schema's `id` pattern. The id is a **purely internal / data-layer concern — it is never surfaced in the UI** (detail panel and search show name, kind, and geometry only). Never render raw ids to end users.
 
 ### Schema enforcement
 

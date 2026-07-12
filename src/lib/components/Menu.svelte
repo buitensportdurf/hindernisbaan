@@ -5,7 +5,9 @@
   import { Button } from '$lib/components/ui/button';
   import { cn } from '$lib/utils';
   import { Card, CardTitle } from '$lib/components/ui/card';
+  import { Separator } from '$lib/components/ui/separator';
   import MapDataStatus from './MapDataStatus.svelte';
+  import type { Snippet } from 'svelte';
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import DatabaseIcon from '@lucide/svelte/icons/database';
@@ -13,16 +15,21 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
   import LayersIcon from '@lucide/svelte/icons/layers';
   import MapIcon from '@lucide/svelte/icons/map';
   import MenuIcon from '@lucide/svelte/icons/menu';
+  import PenLineIcon from '@lucide/svelte/icons/pen-line';
   import SatelliteIcon from '@lucide/svelte/icons/satellite';
   import SettingsIcon from '@lucide/svelte/icons/settings';
   import XIcon from '@lucide/svelte/icons/x';
 
   let {
     app,
-    onImport
+    onImport,
+    mode = 'map',
+    statusExtra
   }: {
     app: AppState;
     onImport: (text: string) => void;
+    mode?: 'map' | 'design';
+    statusExtra?: Snippet;
   } = $props();
 
   const PANEL_MS = 220;
@@ -136,6 +143,39 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
 
           <div class="flex flex-col gap-5 px-3 pb-4 pt-1">
         {#if app.menuLevel === 'root'}
+          <section class="flex flex-col gap-1.5">
+            <p class={sectionLabel}>
+              <PenLineIcon class="size-3" />
+              {t(app.locale, 'menu.mode')}
+            </p>
+            <div class="flex flex-col gap-1">
+              <Button
+                variant="ghost"
+                class={cn(menuButton, mode === 'map' && 'bg-secondary text-secondary-foreground')}
+                href="/"
+              >
+                <MapIcon class={menuIcon} />
+                <span class="flex-1 text-left">{t(app.locale, 'menu.mode.map')}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                class={cn(menuButton, mode === 'design' && 'bg-secondary text-secondary-foreground')}
+                href="/design"
+              >
+                <PenLineIcon class={menuIcon} />
+                <span class="flex-1 text-left">{t(app.locale, 'menu.mode.design')}</span>
+              </Button>
+              <Button variant="ghost" class={cn(menuButton, 'opacity-50')} disabled>
+                <span class="flex-1 text-left">
+                  {t(app.locale, 'menu.mode.test')}
+                  <span class="font-medium text-muted-foreground"> · {t(app.locale, 'menu.mode.test.soon')}</span>
+                </span>
+              </Button>
+            </div>
+          </section>
+
+          <Separator />
+
           <Button variant="ghost" class={menuButton} onclick={() => app.gotoSettings()}>
             <SettingsIcon class={menuIcon} />
             <span class="flex-1 text-left">{t(app.locale, 'menu.settings')}</span>
@@ -205,6 +245,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
             <MapDataStatus {app} {onImport} />
           </section>
         {/if}
+          {@render statusExtra?.()}
           </div>
         </div>
       </div>
