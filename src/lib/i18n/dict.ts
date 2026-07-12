@@ -35,7 +35,10 @@ export const dict = {
     'tiles.down.body': 'Probeer het later opnieuw. De obstakels zijn nog zichtbaar.',
     'tiles.down.dismiss': 'Sluiten',
     'draft.toast.invalid': 'Concept heeft een probleem',
-    'draft.toast.discarded': 'Concept verwijderd'
+    'draft.toast.discarded': 'Concept verwijderd',
+    'design.icon.placeholder': 'Kies een icoon…',
+    'design.icon.search': 'Zoek icoon…',
+    'design.icon.empty': 'Geen iconen gevonden'
   },
   en: {
     'app.title': 'Obstacle map',
@@ -73,7 +76,10 @@ export const dict = {
     'tiles.down.body': 'Try again later. Obstacles are still visible.',
     'tiles.down.dismiss': 'Dismiss',
     'draft.toast.invalid': 'Draft has a problem',
-    'draft.toast.discarded': 'Draft discarded'
+    'draft.toast.discarded': 'Draft discarded',
+    'design.icon.placeholder': 'Choose an icon…',
+    'design.icon.search': 'Search icons…',
+    'design.icon.empty': 'No icons found'
   }
 } as const;
 
