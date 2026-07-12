@@ -15,9 +15,17 @@ export class LoadError extends Error {
   }
 }
 
+export type ValidationResult = { valid: true } | { valid: false; errors: string };
+
+export function validateCollection(data: unknown): ValidationResult {
+  if (validate(data)) return { valid: true };
+  return { valid: false, errors: ajv.errorsText(validate.errors) };
+}
+
 function assertValid(data: unknown): asserts data is FeatureCollection {
-  if (!validate(data)) {
-    throw new LoadError(`Invalid map data: ${ajv.errorsText(validate.errors)}`);
+  const result = validateCollection(data);
+  if (!result.valid) {
+    throw new LoadError(`Invalid map data: ${result.errors}`);
   }
 }
 

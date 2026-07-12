@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { fetchFeatures, parseFeatures, LoadError } from './loader';
+import { fetchFeatures, parseFeatures, LoadError, validateCollection } from './loader';
 
 const validCollection = {
   type: 'FeatureCollection',
@@ -87,5 +87,25 @@ describe('fetchFeatures', () => {
   it('throws LoadError when fetch itself throws (network error)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
     await expect(fetchFeatures('/data/obstacles.geojson')).rejects.toBeInstanceOf(LoadError);
+  });
+});
+
+describe('validateCollection', () => {
+  it('returns valid: true for a well-formed collection', () => {
+    const result = validateCollection({
+      type: 'FeatureCollection',
+      club: 'Test',
+      version: '2026-01-01',
+      features: []
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('returns valid: false with an error message for a malformed collection', () => {
+    const result = validateCollection({ type: 'FeatureCollection' });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.errors.length).toBeGreaterThan(0);
+    }
   });
 });
