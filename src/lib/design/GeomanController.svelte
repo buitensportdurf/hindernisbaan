@@ -19,6 +19,10 @@
 
   const getMap = getContext<() => L.Map | undefined>('map');
 
+  if (!getMap) {
+    throw new Error('GeomanController must be rendered inside MapCanvas (missing map context)');
+  }
+
   const SHAPE_BY_TOOL = {
     point: 'Marker',
     line: 'Line',

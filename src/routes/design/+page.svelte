@@ -105,7 +105,6 @@
 <AppShell {app} mode="design" hasDraftProblem={!draft.isValid}>
   {#snippet toolbar()}
     <DrawToolbar bind:tool locale={app.locale} />
-    <GeomanController {tool} onCreate={handleCreate} onEdit={handleEdit} onRemove={handleRemove} />
   {/snippet}
 
   {#snippet editorPanel()}
@@ -125,6 +124,7 @@
   {/snippet}
 
   {#snippet mapLayers()}
+    <GeomanController {tool} onCreate={handleCreate} onEdit={handleEdit} onRemove={handleRemove} />
     <ObstacleLayer
       features={draft.obstacles}
       selectedId={app.selectedId}
