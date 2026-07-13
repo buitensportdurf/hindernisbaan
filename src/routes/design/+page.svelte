@@ -78,6 +78,7 @@
 
     layer.remove(); // the *Layer components re-render this feature from draft state instead
     app.selectFeature(id);
+    tool = null;
   }
 
   function handleEdit(feature: HindernisFeature, layer: L.Layer) {
