@@ -102,7 +102,7 @@
   const selectedFeature = $derived(draft.features.find((f) => f.id === app.selectedId) ?? null);
 </script>
 
-<AppShell mode="design" hasDraftProblem={!draft.isValid}>
+<AppShell {app} mode="design" hasDraftProblem={!draft.isValid}>
   {#snippet toolbar()}
     <DrawToolbar bind:tool locale={app.locale} />
     <GeomanController {tool} onCreate={handleCreate} onEdit={handleEdit} onRemove={handleRemove} />

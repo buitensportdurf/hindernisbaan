@@ -6,13 +6,14 @@
   import Menu from './Menu.svelte';
   import LoadFailDialog from './LoadFailDialog.svelte';
   import TilesDownDialog from './TilesDownDialog.svelte';
-  import { createAppState } from '$lib/state/app.svelte';
+  import { createAppState, type AppState } from '$lib/state/app.svelte';
   import { fetchFeatures, parseFeatures, LoadError } from '$lib/data/loader';
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
   import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
 
   let {
+    app = createAppState(),
     mode = 'map',
     hasDraftProblem = false,
     toolbar,
@@ -20,6 +21,7 @@
     menuStatusExtra,
     mapLayers
   }: {
+    app?: AppState;
     mode?: 'map' | 'design';
     hasDraftProblem?: boolean;
     toolbar?: Snippet;
@@ -27,8 +29,6 @@
     menuStatusExtra?: Snippet;
     mapLayers?: Snippet;
   } = $props();
-
-  const app = createAppState();
 
   let tilesDown = $state(false);
 
