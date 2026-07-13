@@ -24,12 +24,14 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
     app,
     onImport,
     mode = 'map',
-    statusExtra
+    statusExtra,
+    hasDraftProblem = false
   }: {
     app: AppState;
     onImport: (text: string) => void;
     mode?: 'map' | 'design';
     statusExtra?: Snippet;
+    hasDraftProblem?: boolean;
   } = $props();
 
   const PANEL_MS = 220;
@@ -251,7 +253,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
       </div>
     </Card>
   {:else}
-    <div class="p-3">
+    <div class="relative p-3">
       <Button
         variant="outline"
         size="icon"
@@ -260,6 +262,12 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
       >
         <MenuIcon />
       </Button>
+      {#if hasDraftProblem}
+        <span
+          class="absolute right-2 top-2 size-2.5 rounded-full bg-destructive ring-2 ring-background"
+          aria-hidden="true"
+        ></span>
+      {/if}
     </div>
   {/if}
 </div>

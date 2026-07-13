@@ -105,7 +105,7 @@
     {@render mapLayers?.()}
   </MapCanvas>
 
-  <Menu {app} onImport={handleImport} {mode} statusExtra={menuStatusExtra} />
+  <Menu {app} onImport={handleImport} {mode} statusExtra={menuStatusExtra} {hasDraftProblem} />
 
   {@render toolbar?.()}
   {@render editorPanel?.()}
