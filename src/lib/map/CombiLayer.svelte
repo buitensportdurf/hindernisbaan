@@ -83,7 +83,8 @@
           iconSize: [24, 24],
           iconAnchor: [12, 12]
         }),
-        interactive: false
+        interactive: false,
+        pmIgnore: true
       }));
     }
   });

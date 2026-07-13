@@ -15,12 +15,23 @@
   import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
   import type { HindernisFeature, FeatureCollection } from '$lib/data/types';
   import type L from 'leaflet';
+  import { t } from '$lib/i18n';
+  import { toast } from 'svelte-sonner';
 
   const app = createAppState();
   const draft = createDraftState();
 
   let liveData = $state<FeatureCollection | null>(null);
   let tool = $state<DrawTool>(null);
+  let lastInvalidToastAt = 0;
+
+  $effect(() => {
+    if (draft.isValid) return;
+    const now = Date.now();
+    if (now - lastInvalidToastAt < 2000) return;
+    lastInvalidToastAt = now;
+    toast.error(t(app.locale, 'draft.toast.invalid'));
+  });
 
   onMount(async () => {
     app.setLoadState('loading');

@@ -25,3 +25,11 @@ export function writeKey(key: string, value: string): void {
     /* best effort */
   }
 }
+
+export function removeKey(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* best effort */
+  }
+}

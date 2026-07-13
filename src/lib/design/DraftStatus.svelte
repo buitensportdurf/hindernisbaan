@@ -21,15 +21,6 @@
   let discardOpen = $state(false);
   let exportOpen = $state(false);
   let hovering = $state(false);
-  let lastInvalidToastAt = 0;
-
-  $effect(() => {
-    if (draft.isValid) return;
-    const now = Date.now();
-    if (now - lastInvalidToastAt < 2000) return;
-    lastInvalidToastAt = now;
-    toast.error(t(locale, 'draft.toast.invalid'));
-  });
 </script>
 
 <div
@@ -42,6 +33,7 @@
     type="button"
     class={draft.isValid ? 'text-muted-foreground' : 'font-medium text-destructive'}
     onclick={() => (exportOpen = true)}
+    title={draft.isValid ? undefined : (draft.validationErrors ?? undefined)}
   >
     {#if !draft.isValid}
       <CircleAlertIcon class="mr-1 inline size-3.5 align-text-bottom" />

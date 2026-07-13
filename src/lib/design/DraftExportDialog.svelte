@@ -74,6 +74,10 @@
       </Button>
     </div>
 
+    {#if draft.validationErrors}
+      <p class="text-xs text-destructive break-words">{draft.validationErrors}</p>
+    {/if}
+
     <div class="flex flex-col gap-2">
       <Button variant="outline" class="w-full" onclick={handleDownload}>
         {t(locale, 'draft.export.download')}

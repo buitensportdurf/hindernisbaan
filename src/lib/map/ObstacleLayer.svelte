@@ -42,11 +42,13 @@
         group.addLayer(L.polyline(latlngs, {
           weight: innerW + 8, color: '#00a5e3', interactive: false,
           lineCap: 'round', lineJoin: 'round',
-          className: 'obstacle-line' + (sel ? ' selected' : '')
+          className: 'obstacle-line' + (sel ? ' selected' : ''),
+          pmIgnore: true
         }));
         group.addLayer(L.polyline(latlngs, {
           weight: innerW, color: '#ffffff', interactive: false,
-          lineCap: 'round', lineJoin: 'round'
+          lineCap: 'round', lineJoin: 'round',
+          pmIgnore: true
         }));
         attach(
           L.polyline(latlngs, { weight: 20, opacity: 0, fillOpacity: 0 }),

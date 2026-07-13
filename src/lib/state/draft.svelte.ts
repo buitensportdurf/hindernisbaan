@@ -1,5 +1,5 @@
 import { validateCollection } from '$lib/data/loader';
-import { readKey, writeKey } from '$lib/storage/local';
+import { readKey, writeKey, removeKey } from '$lib/storage/local';
 import * as mutations from '$lib/design/draftMutations';
 import type {
   FeatureCollection,
@@ -106,7 +106,7 @@ export function createDraftState() {
       features = live.features;
       isValid = true;
       validationErrors = null;
-      writeKey(DRAFT_KEY, JSON.stringify(live));
+      removeKey(DRAFT_KEY);
       hasStoredDraft = false;
     },
 
