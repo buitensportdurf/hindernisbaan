@@ -13,7 +13,7 @@ export const TILE_LAYERS: Record<TileKey, TileLayerDef> = {
     key: 'map',
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
     attribution: '© OpenStreetMap © CARTO',
-    maxZoom: 20,
+    maxZoom: 19,
     subdomains: 'abcd'
   },
   sat: {
