@@ -68,7 +68,7 @@ In `src/lib/data/types.ts`, replace:
 export interface FeatureCollection {
   type: 'FeatureCollection';
   version: string;
-  features: HindernisFeature[];
+  features: MapFeature[];
 }
 ```
 
@@ -79,7 +79,7 @@ export interface FeatureCollection {
   type: 'FeatureCollection';
   club: string;
   version: string;
-  features: HindernisFeature[];
+  features: MapFeature[];
 }
 ```
 
@@ -210,14 +210,14 @@ Expected: all tests pass, including the new "throws LoadError when club is missi
 In `src/lib/state/app.svelte.ts`, replace:
 
 ```ts
-  let features = $state<HindernisFeature[]>([]);
+  let features = $state<MapFeature[]>([]);
   let dataVersion = $state<string | null>(null);
 ```
 
 with:
 
 ```ts
-  let features = $state<HindernisFeature[]>([]);
+  let features = $state<MapFeature[]>([]);
   let dataVersion = $state<string | null>(null);
   let dataClub = $state<string | null>(null);
 ```
@@ -505,7 +505,7 @@ git commit -m "feat: add MapDataDialog component"
 - Create: `src/lib/components/MapDataStatus.svelte`
 
 **Interfaces:**
-- Consumes: `AppState` (`app.dataClub: string | null`, `app.dataVersion: string | null`, `app.features: HindernisFeature[]`, `app.locale: Locale`) from `$lib/state/app.svelte`; `OBSTACLES_URL` from `$lib/data/loader`; `MapDataDialog` from Task 3.
+- Consumes: `AppState` (`app.dataClub: string | null`, `app.dataVersion: string | null`, `app.features: MapFeature[]`, `app.locale: Locale`) from `$lib/state/app.svelte`; `OBSTACLES_URL` from `$lib/data/loader`; `MapDataDialog` from Task 3.
 - Produces: `MapDataStatus` component with props `{ app: AppState; onImport: (text: string) => void }`. Renders nothing until `app.dataClub !== null && app.dataVersion !== null`. Renders a clickable `{club} · v{version}` row that opens `MapDataDialog` on click.
 
 - [ ] **Step 1: Create the component**

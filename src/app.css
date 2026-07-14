@@ -27,7 +27,65 @@ html, body { margin: 0; height: 100%; }
 
 .leaflet-container { background: #dfe8d8; font-family: 'Geist', sans-serif; }
 
+.leaflet-tooltip {
+  @apply border-none bg-transparent p-0 shadow-none;
+}
+
+.leaflet-tooltip .tooltip-bubble {
+  @apply tooltip-surface tooltip-animate-in inline-block;
+}
+
+.leaflet-tooltip-top .tooltip-bubble { @apply tooltip-from-top; }
+.leaflet-tooltip-bottom .tooltip-bubble { @apply tooltip-from-bottom; }
+.leaflet-tooltip-left .tooltip-bubble { @apply tooltip-from-left; }
+.leaflet-tooltip-right .tooltip-bubble { @apply tooltip-from-right; }
+
+/* Geoman / plain-text tooltips: opacity only — transform animation breaks Leaflet positioning */
+.leaflet-tooltip:not(:has(.tooltip-bubble)) {
+  @apply tooltip-surface;
+  animation: tooltip-map-enter 150ms ease-out;
+}
+
+@keyframes tooltip-map-enter {
+  from { opacity: 0; }
+}
+
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+  display: none;
+}
+
 @layer components {
+  .tooltip-surface {
+    @apply rounded-md bg-foreground px-3 py-1.5 text-xs text-background shadow-md font-sans;
+  }
+
+  .tooltip-animate-in {
+    @apply animate-in fade-in-0 zoom-in-95 overflow-hidden;
+  }
+
+  .tooltip-animate-out {
+    @apply animate-out fade-out-0 zoom-out-95;
+  }
+
+  .tooltip-from-top {
+    @apply slide-in-from-bottom-2;
+  }
+
+  .tooltip-from-bottom {
+    @apply slide-in-from-top-2;
+  }
+
+  .tooltip-from-left {
+    @apply slide-in-from-right-2;
+  }
+
+  .tooltip-from-right {
+    @apply slide-in-from-left-2;
+  }
+
   .menu-panel {
     opacity: 0;
     transform: scale(0.96) translateY(-6px);
@@ -74,7 +132,7 @@ html, body { margin: 0; height: 100%; }
   }
 }
 
-/* Universal selection + map-entity tokens */
+/* Universal selection + filled-path map tokens */
 :root {
   --map-shadow: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.14));
   --sel-glow: drop-shadow(0 2px 10px rgba(0, 165, 227, 0.65));
@@ -97,8 +155,13 @@ html, body { margin: 0; height: 100%; }
   filter: var(--sel-glow);
 }
 
+/* Line inner stroke — opacity only (outer line carries shadow/glow) */
+.obstacle-line-inner {
+  transition: opacity 180ms ease-out;
+}
+
 /* Dim non-selected entities when a selection is active */
-.has-selection :is(.obstacle-dot, .obstacle-line, .obstacle-poly, .combi-zone):not(.selected) {
+.has-selection :is(.obstacle-dot, .obstacle-line, .obstacle-line-inner, .obstacle-poly, .combi-zone):not(.selected) {
   opacity: 0.38;
 }
 .has-selection .landmark-marker:not(.selected) .landmark-pill {
@@ -106,6 +169,13 @@ html, body { margin: 0; height: 100%; }
 }
 
 /* Combi member count */
+.combi-rotate-handle {
+  background-color: #fff;
+  border: 2px solid #f59e0b;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
 .combi-count {
   display: flex;
   align-items: center;
@@ -134,7 +204,7 @@ html, body { margin: 0; height: 100%; }
   line-height: 1;
   color: var(--text-muted);
   white-space: nowrap;
-  transform: translate(-50%, calc(-100% - var(--space-2)));
+  transform: translate(var(--space-2), -50%);
   transition: box-shadow var(--dur-base) var(--ease-out), opacity 180ms ease-out;
   pointer-events: auto;
   cursor: pointer;

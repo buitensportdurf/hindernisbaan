@@ -1,1 +1,1 @@
-export type DrawTool = 'point' | 'line' | 'polygon' | 'rectangle' | 'edit' | 'remove' | null;
+export type DrawTool = 'point' | 'landmark' | 'line' | 'polygon' | 'rectangle' | 'remove' | null;

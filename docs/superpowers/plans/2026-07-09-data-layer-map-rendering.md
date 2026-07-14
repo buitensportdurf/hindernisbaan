@@ -36,7 +36,7 @@
 
 ```
 src/lib/data/obstacles.schema.json   — JSON Schema (single source of truth)
-src/lib/data/types.ts                — TS types (FeatureCollection, HindernisFeature, Member, …)
+src/lib/data/types.ts                — TS types (FeatureCollection, MapFeature, Member, …)
 src/lib/data/loader.ts               — fetchFeatures(), parseFeatures(), LoadError
 src/lib/data/loader.test.ts          — Vitest tests for loader logic
 
@@ -76,8 +76,8 @@ src/app.css                          — CSS custom property design tokens + .ob
   - `type Geometry = PointGeometry | LineStringGeometry | PolygonGeometry`
   - `interface Member { name: string; notes?: string; position?: [number, number] }`
   - `interface ObstacleFeature`, `CombiFeature`, `LandmarkFeature` with discriminated `properties.kind`
-  - `type HindernisFeature = ObstacleFeature | CombiFeature | LandmarkFeature`
-  - `interface FeatureCollection { type: 'FeatureCollection'; version: string; features: HindernisFeature[] }`
+  - `type MapFeature = ObstacleFeature | CombiFeature | LandmarkFeature`
+  - `interface FeatureCollection { type: 'FeatureCollection'; version: string; features: MapFeature[] }`
 
 - [ ] **Step 1: Create `src/lib/data/types.ts`**
 
@@ -145,12 +145,12 @@ export interface LandmarkFeature {
   properties: LandmarkProperties;
 }
 
-export type HindernisFeature = ObstacleFeature | CombiFeature | LandmarkFeature;
+export type MapFeature = ObstacleFeature | CombiFeature | LandmarkFeature;
 
 export interface FeatureCollection {
   type: 'FeatureCollection';
   version: string;
-  features: HindernisFeature[];
+  features: MapFeature[];
 }
 ```
 
@@ -627,9 +627,9 @@ git commit -m "feat: add data loader with AJV schema validation"
 - Modify: `src/app.css` — add marker CSS
 
 **Interfaces:**
-- Consumes: `fetchFeatures`, `parseFeatures`, `LoadError` from `$lib/data/loader`; `FeatureCollection`, `HindernisFeature`, `ObstacleFeature`, `CombiFeature`, `LandmarkFeature` from `$lib/data/types`
+- Consumes: `fetchFeatures`, `parseFeatures`, `LoadError` from `$lib/data/loader`; `FeatureCollection`, `MapFeature`, `ObstacleFeature`, `CombiFeature`, `LandmarkFeature` from `$lib/data/types`
 - Produces:
-  - `app.features: HindernisFeature[]`, `app.obstacles: ObstacleFeature[]`, `app.combis: CombiFeature[]`, `app.landmarks: LandmarkFeature[]`
+  - `app.features: MapFeature[]`, `app.obstacles: ObstacleFeature[]`, `app.combis: CombiFeature[]`, `app.landmarks: LandmarkFeature[]`
   - `app.dataVersion: string | null`, `app.dataCount: number`
   - `app.selectedId: string | null`, `app.loadError: string | null`
   - `app.loadState: 'idle' | 'loading' | 'error' | 'loaded'`
@@ -676,7 +676,7 @@ import type { TileKey } from '$lib/map/tiles';
 import { readKey, writeKey } from '$lib/storage/local';
 import type {
   FeatureCollection,
-  HindernisFeature,
+  MapFeature,
   ObstacleFeature,
   CombiFeature,
   LandmarkFeature
@@ -696,7 +696,7 @@ export function createAppState() {
   let menuOpen = $state(false);
   let menuLevel = $state<MenuLevel>('root');
 
-  let features = $state<HindernisFeature[]>([]);
+  let features = $state<MapFeature[]>([]);
   let dataVersion = $state<string | null>(null);
   let selectedId = $state<string | null>(null);
   let loadError = $state<string | null>(null);
@@ -882,7 +882,7 @@ Replace the entire file with:
     children
   }: {
     tile?: TileKey;
-    fitFeatures?: import('$lib/data/types').HindernisFeature[] | null;
+    fitFeatures?: import('$lib/data/types').MapFeature[] | null;
     onReady?: () => void;
     onFailover?: (next: TileKey) => void;
     onBothTilesDown?: () => void;
@@ -1851,7 +1851,7 @@ git commit -m "feat: dev-only tweaks panel for selected-state style exploration"
 - No TBD, TODO, or "add error handling" phrases. Every code block is complete. ✓
 
 **Type consistency:**
-- `HindernisFeature`, `ObstacleFeature`, `CombiFeature`, `LandmarkFeature` defined in Task 1 `types.ts` and used consistently across Tasks 2–6.
+- `MapFeature`, `ObstacleFeature`, `CombiFeature`, `LandmarkFeature` defined in Task 1 `types.ts` and used consistently across Tasks 2–6.
 - `LoadError` defined in Task 2 `loader.ts` and used in Task 3 `AppShell.svelte`.
 - Context key `'map'` set in Task 3 (`MapCanvas.svelte`) as `() => L.Map | undefined` and consumed in Tasks 4–6 with `getContext<() => L.Map | undefined>('map')`.
 - `app.obstacles`, `app.combis`, `app.landmarks` defined in Task 3 `app.svelte.ts` and consumed in Tasks 4–6 `AppShell.svelte`.

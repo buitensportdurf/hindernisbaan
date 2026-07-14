@@ -9,19 +9,29 @@
     locale,
     data,
     sourceUrl,
+    validationErrors = null,
+    onDownload,
     onImport,
+    onRevertDraft,
     onClose
   }: {
     locale: Locale;
     data: FeatureCollection;
-    sourceUrl: string;
+    sourceUrl?: string;
+    validationErrors?: string | null;
+    onDownload?: () => void;
     onImport: (text: string) => void;
+    onRevertDraft?: () => void;
     onClose: () => void;
   } = $props();
 
   let fileInput: HTMLInputElement;
 
   function handleDownload() {
+    if (onDownload) {
+      onDownload();
+      return;
+    }
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/geo+json'
     });
@@ -42,9 +52,6 @@
     onClose();
   }
 
-  // Menu.svelte's sliding panel is CSS-transformed, which makes it the
-  // containing block for `position: fixed` descendants — reparent to
-  // <body> so this overlay covers the real viewport instead.
   function portal(node: HTMLElement) {
     document.body.appendChild(node);
     return {
@@ -103,9 +110,21 @@
       </div>
       <div class="flex justify-between gap-3">
         <dt class="text-muted-foreground">{t(locale, 'mapdata.source')}</dt>
-        <dd class="truncate font-medium text-foreground">{sourceUrl}</dd>
+        <dd class="truncate font-medium text-foreground">
+          {sourceUrl ?? t(locale, 'mapdata.source.draft')}
+        </dd>
       </div>
     </dl>
+
+    {#if validationErrors}
+      <p class="break-words text-xs text-destructive">{validationErrors}</p>
+    {/if}
+
+    {#if onRevertDraft}
+      <Button variant="destructive" class="w-full" onclick={onRevertDraft}>
+        {t(locale, 'draft.discard')}
+      </Button>
+    {/if}
 
     <div class="flex flex-col gap-2">
       <Button variant="outline" class="w-full" onclick={handleDownload}>

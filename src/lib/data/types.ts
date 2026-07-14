@@ -61,11 +61,11 @@ export interface LandmarkFeature {
   properties: LandmarkProperties;
 }
 
-export type HindernisFeature = ObstacleFeature | CombiFeature | LandmarkFeature;
+export type MapFeature = ObstacleFeature | CombiFeature | LandmarkFeature;
 
 export interface FeatureCollection {
   type: 'FeatureCollection';
   club: string;
   version: string;
-  features: HindernisFeature[];
+  features: MapFeature[];
 }

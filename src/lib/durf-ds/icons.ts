@@ -18,6 +18,12 @@ export function kebabToPascal(name: string): string | undefined {
 
 export const ALL_ICON_NAMES: string[] = [...KEBAB_TO_PASCAL.keys()].sort();
 
+export function filterIconNames(names: readonly string[], query: string): string[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [...names];
+  return names.filter((n) => n.includes(q));
+}
+
 export function getIconComponent(kebabName: string): Component | undefined {
   const pascal = kebabToPascal(kebabName);
   if (!pascal) return undefined;

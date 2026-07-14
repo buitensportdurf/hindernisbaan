@@ -3,7 +3,7 @@ import { readKey, writeKey, removeKey } from '$lib/storage/local';
 import * as mutations from '$lib/design/draftMutations';
 import type {
   FeatureCollection,
-  HindernisFeature,
+  MapFeature,
   Member,
   ObstacleFeature,
   CombiFeature,
@@ -13,7 +13,7 @@ import type {
 const DRAFT_KEY = 'durf:draft';
 
 export function createDraftState() {
-  let features = $state<HindernisFeature[]>([]);
+  let features = $state<MapFeature[]>([]);
   let club = $state('');
   let version = $state('');
   let isValid = $state(true);
@@ -34,7 +34,7 @@ export function createDraftState() {
     }
   }
 
-  function apply(next: HindernisFeature[]) {
+  function apply(next: MapFeature[]) {
     features = next;
     revalidateAndPersist();
   }
@@ -81,7 +81,7 @@ export function createDraftState() {
       hasStoredDraft = false;
     },
 
-    addFeature(feature: HindernisFeature) { apply(mutations.addFeature(features, feature)); },
+    addFeature(feature: MapFeature) { apply(mutations.addFeature(features, feature)); },
     updateFeature(id: string, patch: Record<string, unknown>) {
       apply(mutations.updateFeature(features, id, patch));
     },
@@ -89,8 +89,8 @@ export function createDraftState() {
       apply(mutations.setKind(features, id, kind));
     },
     removeFeature(id: string) { apply(mutations.removeFeature(features, id)); },
-    updateGeometry(id: string, geometry: HindernisFeature['geometry']) {
-      apply(features.map((f) => (f.id === id ? ({ ...f, geometry } as HindernisFeature) : f)));
+    updateGeometry(id: string, geometry: MapFeature['geometry']) {
+      apply(features.map((f) => (f.id === id ? ({ ...f, geometry } as MapFeature) : f)));
     },
     addMember(comboId: string) { apply(mutations.addMember(features, comboId)); },
     updateMember(comboId: string, index: number, patch: Partial<Member>) {

@@ -1,18 +1,33 @@
 <script lang="ts">
+  import { getContext } from 'svelte';
   import L from 'leaflet';
   import type { CombiFeature } from '$lib/data/types';
   import { useMapLayer } from './useMapLayer.svelte';
-  import { ENTITY_STYLE, addSvgTitle } from './mapUtils';
+  import { FILLED_PATH_STYLE, bindFilledPathTooltip, attachFeatureGestures, syncMapFeatureSelection } from './mapUtils';
 
   let {
     features,
     selectedId,
-    onSelect
+    onSelect,
+    onOpenDetails,
+    gesturesEnabled
   }: {
     features: CombiFeature[];
     selectedId: string | null;
     onSelect: (id: string) => void;
+    onOpenDetails?: (id: string) => void;
+    gesturesEnabled?: () => boolean;
   } = $props();
+
+  const getMap = getContext<() => L.Map | undefined>('map');
+
+  $effect(() => {
+    const map = getMap();
+    const id = selectedId;
+    void features;
+    if (!map) return;
+    queueMicrotask(() => syncMapFeatureSelection(map, id));
+  });
 
   function roundedPolyPath(parts: L.Point[][], r: number): string {
     let str = '';
@@ -49,43 +64,65 @@
   }
 
   useMapLayer((group) => {
+    const activeSelectedId = selectedId;
     for (const f of features) {
-      const sel = f.id === selectedId;
       const latlngs = f.geometry.coordinates.map((ring) =>
         ring.map(([lng, lat]) => [lat, lng] as [number, number])
       );
 
-      const polygon = L.polygon(latlngs, {
-        ...ENTITY_STYLE,
-        className: 'combi-zone' + (sel ? ' selected' : '')
+      // L.rectangle → Geoman PM.Edit.Rectangle (4 corners, no freeform vertices).
+      const bounds = L.latLngBounds(latlngs[0]);
+      const rectangle = L.rectangle(bounds, {
+        ...FILLED_PATH_STYLE,
+        className: 'combi-zone'
       });
+      rectangle.setLatLngs(latlngs);
 
-      const origUpdatePath = (polygon as any)._updatePath.bind(polygon);
-      (polygon as any)._updatePath = function () {
+      const origUpdatePath = (rectangle as L.Rectangle & { _updatePath: () => void })._updatePath.bind(rectangle);
+      (rectangle as L.Rectangle & { _updatePath: () => void })._updatePath = function () {
         origUpdatePath();
-        const parts: L.Point[][] = (polygon as any)._parts;
+        const parts: L.Point[][] = (rectangle as L.Rectangle & { _parts?: L.Point[][] })._parts ?? [];
         if (!parts?.[0]?.length) return;
         const ring = parts[0];
-        const w = Math.sqrt((ring[1].x - ring[0].x) ** 2 + (ring[1].y - ring[0].y) ** 2);
-        const h = Math.sqrt((ring[2].x - ring[1].x) ** 2 + (ring[2].y - ring[1].y) ** 2);
-        (polygon as any)._path.setAttribute('d', roundedPolyPath(parts, Math.min(w, h) / 2));
+        let minEdge = Infinity;
+        for (let i = 0; i < ring.length; i++) {
+          const j = (i + 1) % ring.length;
+          const dx = ring[j].x - ring[i].x;
+          const dy = ring[j].y - ring[i].y;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          if (len > 0) minEdge = Math.min(minEdge, len);
+        }
+        const r = minEdge === Infinity ? 0 : minEdge / 2;
+        const path = (rectangle as L.Rectangle & { _path?: SVGPathElement })._path;
+        path?.setAttribute('d', roundedPolyPath(parts, r));
       };
 
-      (polygon as L.Layer & { feature?: CombiFeature }).feature = f;
-      polygon.on('click', (e) => { L.DomEvent.stopPropagation(e); onSelect(f.id); });
-      group.addLayer(polygon);
-      addSvgTitle(polygon, f.properties.name);
+      (rectangle as L.Layer & { feature?: CombiFeature }).feature = f;
+      attachFeatureGestures(rectangle, f.id, {
+        onSelect,
+        onOpenDetails,
+        enabled: gesturesEnabled
+      });
+      group.addLayer(rectangle);
+      bindFilledPathTooltip(rectangle, f.properties.name);
+      // #region agent log
+      fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-6',hypothesisId:'M',location:'CombiLayer.svelte:setup',message:'combi layer created',data:{featureId:f.id,layerType:'Rectangle',vertexCount:latlngs[0]?.length},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
 
-      group.addLayer(L.marker(polygon.getBounds().getCenter(), {
-        icon: L.divIcon({
-          html: String(f.properties.members.length),
-          className: 'combi-count',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        }),
-        interactive: false,
-        pmIgnore: true
-      }));
+      const count = f.properties.members.length;
+      const showCount = activeSelectedId === null || activeSelectedId === f.id;
+      if (count > 0 && showCount) {
+        group.addLayer(L.marker(rectangle.getBounds().getCenter(), {
+          icon: L.divIcon({
+            html: String(count),
+            className: 'combi-count',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          }),
+          interactive: false,
+          pmIgnore: true
+        }));
+      }
     }
   });
 </script>

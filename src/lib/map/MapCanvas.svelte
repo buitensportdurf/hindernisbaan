@@ -3,12 +3,14 @@
   import type { Snippet } from 'svelte';
   import L from 'leaflet';
   import type { FeatureCollection } from 'geojson';
-  import type { HindernisFeature } from '$lib/data/types';
+  import type { MapFeature } from '$lib/data/types';
   import { TILE_LAYERS, otherTile, TILE_ERROR_THRESHOLD, type TileKey } from './tiles';
+  import { isGeomanHandleTarget, isFeatureSurfaceTarget, shouldSuppressMapDeselect } from './mapUtils';
 
   let {
     tile = 'map',
     fitFeatures,
+    doubleClickZoom = true,
     onReady,
     onFailover,
     onBothTilesDown,
@@ -16,7 +18,8 @@
     children
   }: {
     tile?: TileKey;
-    fitFeatures?: HindernisFeature[] | null;
+    fitFeatures?: MapFeature[] | null;
+    doubleClickZoom?: boolean;
     onReady?: () => void;
     onFailover?: (next: TileKey) => void;
     onBothTilesDown?: () => void;
@@ -30,16 +33,26 @@
   let layers: Partial<Record<TileKey, L.TileLayer>> = {};
   let active: TileKey | undefined;
   let failedOnce = false;
-  let hasFit = false;
+  let lastFitKey = '';
+
+  function fitKey(features: MapFeature[]): string {
+    return features
+      .map((f) => f.id)
+      .sort()
+      .join('|');
+  }
 
   setContext('map', () => map);
 
   $effect(() => {
-    if (!map || !fitFeatures || fitFeatures.length === 0 || hasFit) return;
+    if (!map || !fitFeatures || fitFeatures.length === 0) return;
+    const key = fitKey(fitFeatures);
+    if (lastFitKey === key) return;
     const bounds = L.geoJSON({ type: 'FeatureCollection', features: fitFeatures } as FeatureCollection).getBounds();
     if (bounds.isValid()) {
+      map.invalidateSize();
       map.fitBounds(bounds, { padding: [48, 48], maxZoom: 18 });
-      hasFit = true;
+      lastFitKey = key;
     }
   });
 
@@ -76,11 +89,24 @@
   }
 
   onMount(() => {
-    map = L.map(el, { zoomControl: false, attributionControl: true }).setView(CENTER, 16);
+    map = L.map(el, {
+      zoomControl: false,
+      attributionControl: true,
+      doubleClickZoom
+    }).setView(CENTER, 16);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     map.attributionControl.setPrefix(false);
     applyTile(tile);
-    map.on('click', () => onDeselect?.());
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      const suppressed = shouldSuppressMapDeselect();
+      const geomanHandle = isGeomanHandleTarget(e.originalEvent.target);
+      const featureSurface = isFeatureSurfaceTarget(e.originalEvent.target);
+      // #region agent log
+      fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-7',hypothesisId:'K',location:'MapCanvas.svelte:mapClick',message:'map click deselect check',data:{suppressed,geomanHandle,featureSurface,willDeselect:!suppressed&&!geomanHandle&&!featureSurface,targetTag:(e.originalEvent.target as Element|undefined)?.className},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      if (suppressed || geomanHandle || featureSurface) return;
+      onDeselect?.();
+    });
     onReady?.();
     return () => map?.remove();
   });

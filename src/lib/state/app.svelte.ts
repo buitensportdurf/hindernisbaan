@@ -4,7 +4,7 @@ import type { TileKey } from '$lib/map/tiles';
 import { readKey, writeKey } from '$lib/storage/local';
 import type {
   FeatureCollection,
-  HindernisFeature,
+  MapFeature,
   ObstacleFeature,
   CombiFeature,
   LandmarkFeature
@@ -24,7 +24,7 @@ export function createAppState() {
   let menuOpen = $state(false);
   let menuLevel = $state<MenuLevel>('root');
 
-  let features = $state<HindernisFeature[]>([]);
+  let features = $state<MapFeature[]>([]);
   let dataVersion = $state<string | null>(null);
   let dataClub = $state<string | null>(null);
   let selectedId = $state<string | null>(null);
@@ -79,6 +79,10 @@ export function createAppState() {
       loadState = s;
     },
     selectFeature(id: string | null) {
+      // #region agent log
+      fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-5',hypothesisId:'F',location:'app.svelte.ts:selectFeature',message:'selectFeature called',data:{from:selectedId,to:id,skipped:selectedId===id},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      if (selectedId === id) return;
       selectedId = id;
     }
   };

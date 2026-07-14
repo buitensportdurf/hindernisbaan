@@ -41,6 +41,7 @@
     "@geoman-io/leaflet-geoman-free": "2.19.2",
     "ajv": "^8.20.0",
     "leaflet": "^1.9.4",
-    "svelte-sonner": "^1.1.1"
+    "svelte-sonner": "^1.1.1",
+    "vaul-svelte": "1.0.0-next.7"
   }
 }

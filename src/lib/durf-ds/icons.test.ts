@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pascalToKebab, kebabToPascal, ALL_ICON_NAMES, getIconComponent } from './icons';
+import { pascalToKebab, kebabToPascal, ALL_ICON_NAMES, filterIconNames, getIconComponent } from './icons';
 
 describe('pascalToKebab', () => {
   it('converts simple PascalCase names', () => {
@@ -28,6 +28,20 @@ describe('ALL_ICON_NAMES', () => {
     expect(ALL_ICON_NAMES).toContain('arrow-left');
     expect(new Set(ALL_ICON_NAMES).size).toBe(ALL_ICON_NAMES.length);
     expect([...ALL_ICON_NAMES].sort()).toEqual(ALL_ICON_NAMES);
+  });
+});
+
+describe('filterIconNames', () => {
+  const sample = ['users', 'user-round', 'arrow-left', 'tree-pine'];
+
+  it('returns all names when query is empty', () => {
+    expect(filterIconNames(sample, '')).toEqual(sample);
+    expect(filterIconNames(sample, '   ')).toEqual(sample);
+  });
+
+  it('filters case-insensitively by substring', () => {
+    expect(filterIconNames(sample, 'user')).toEqual(['users', 'user-round']);
+    expect(filterIconNames(sample, 'ARROW')).toEqual(['arrow-left']);
   });
 });
 

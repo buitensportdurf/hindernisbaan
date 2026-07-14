@@ -1754,13 +1754,13 @@ git commit -m "feat: add searchable Lucide icon picker for landmark features"
 
 **Interfaces:**
 - Produces (pure, from `draftMutations.ts`):
-  - `addFeature(features: HindernisFeature[], feature: HindernisFeature): HindernisFeature[]`
-  - `updateFeature(features: HindernisFeature[], id: string, patch: Partial<HindernisFeature['properties']>): HindernisFeature[]`
-  - `setKind(features: HindernisFeature[], id: string, kind: 'obstacle' | 'combi' | 'landmark'): HindernisFeature[]` — rebuilds `properties` from scratch on a kind switch (keeps `name`/`notes`, drops kind-specific keys that no longer apply, adds empty `members`/`icon` scaffolding for the new kind). A shallow `updateFeature({ kind })` merge is NOT usable for kind switches: it would leave stale keys behind (`combi→obstacle` keeps `members`, `landmark→obstacle` keeps `icon`), and with `additionalProperties: false` in the schema that's a permanently-invalid draft the UI can't repair.
-  - `removeFeature(features: HindernisFeature[], id: string): HindernisFeature[]`
-  - `addMember(features: HindernisFeature[], comboId: string): HindernisFeature[]` (appends `{ name: '' }`)
-  - `updateMember(features: HindernisFeature[], comboId: string, index: number, patch: Partial<Member>): HindernisFeature[]`
-  - `removeMember(features: HindernisFeature[], comboId: string, index: number): HindernisFeature[]`
+  - `addFeature(features: MapFeature[], feature: MapFeature): MapFeature[]`
+  - `updateFeature(features: MapFeature[], id: string, patch: Partial<MapFeature['properties']>): MapFeature[]`
+  - `setKind(features: MapFeature[], id: string, kind: 'obstacle' | 'combi' | 'landmark'): MapFeature[]` — rebuilds `properties` from scratch on a kind switch (keeps `name`/`notes`, drops kind-specific keys that no longer apply, adds empty `members`/`icon` scaffolding for the new kind). A shallow `updateFeature({ kind })` merge is NOT usable for kind switches: it would leave stale keys behind (`combi→obstacle` keeps `members`, `landmark→obstacle` keeps `icon`), and with `additionalProperties: false` in the schema that's a permanently-invalid draft the UI can't repair.
+  - `removeFeature(features: MapFeature[], id: string): MapFeature[]`
+  - `addMember(features: MapFeature[], comboId: string): MapFeature[]` (appends `{ name: '' }`)
+  - `updateMember(features: MapFeature[], comboId: string, index: number, patch: Partial<Member>): MapFeature[]`
+  - `removeMember(features: MapFeature[], comboId: string, index: number): MapFeature[]`
 - Produces (stateful, from `draft.svelte.ts`): `createDraftState()` returning an object with `features`, `obstacles`, `combis`, `landmarks`, `club`, `version`, `isValid`, `validationErrors`, `hasStoredDraft`, methods `loadOrInit(live: FeatureCollection)`, `addFeature`, `updateFeature`, `setKind(id, kind)`, `updateGeometry(id, geometry)`, `removeFeature`, `addMember`, `updateMember`, `removeMember`, `discard(live: FeatureCollection)`, `exportCollection(): FeatureCollection`. `obstacles`/`combis`/`landmarks` mirror `app.svelte.ts`'s existing kind-filtered getters exactly, so `design/+page.svelte` (Task 16) can drive `ObstacleLayer`/`CombiLayer`/`LandmarkLayer` from the draft the same way `AppShell` already drives them from live data.
 - Consumes: `validateCollection` from `$lib/data/loader`; `readKey`/`writeKey` from `$lib/storage/local`; `generateId` from `$lib/data/ids`.
 
@@ -1778,7 +1778,7 @@ import {
   updateMember,
   removeMember
 } from './draftMutations';
-import type { HindernisFeature, ObstacleFeature, CombiFeature } from '$lib/data/types';
+import type { MapFeature, ObstacleFeature, CombiFeature } from '$lib/data/types';
 
 const obstacle: ObstacleFeature = {
   type: 'Feature',
@@ -1837,7 +1837,7 @@ describe('setKind', () => {
   });
 
   it('drops icon when switching landmark to obstacle', () => {
-    const landmark: HindernisFeature = {
+    const landmark: MapFeature = {
       type: 'Feature',
       id: 'lm-1',
       geometry: { type: 'Point', coordinates: [4.36, 52.02] },
@@ -1897,51 +1897,51 @@ Expected: FAIL — `Cannot find module './draftMutations'`.
 - [ ] **Step 3: Implement `draftMutations.ts`**
 
 ```ts
-import type { HindernisFeature, Member } from '$lib/data/types';
+import type { MapFeature, Member } from '$lib/data/types';
 
 export function addFeature(
-  features: HindernisFeature[],
-  feature: HindernisFeature
-): HindernisFeature[] {
+  features: MapFeature[],
+  feature: MapFeature
+): MapFeature[] {
   return [...features, feature];
 }
 
 export function updateFeature(
-  features: HindernisFeature[],
+  features: MapFeature[],
   id: string,
   patch: Record<string, unknown>
-): HindernisFeature[] {
+): MapFeature[] {
   return features.map((f) =>
-    f.id === id ? ({ ...f, properties: { ...f.properties, ...patch } } as HindernisFeature) : f
+    f.id === id ? ({ ...f, properties: { ...f.properties, ...patch } } as MapFeature) : f
   );
 }
 
 export function setKind(
-  features: HindernisFeature[],
+  features: MapFeature[],
   id: string,
   kind: 'obstacle' | 'combi' | 'landmark'
-): HindernisFeature[] {
+): MapFeature[] {
   return features.map((f) => {
     if (f.id !== id) return f;
     const base: { name: string; notes?: string } = { name: f.properties.name };
     if (f.properties.notes !== undefined) base.notes = f.properties.notes;
     if (kind === 'combi') {
       const members = f.properties.kind === 'combi' ? f.properties.members : [];
-      return { ...f, properties: { ...base, kind, members } } as HindernisFeature;
+      return { ...f, properties: { ...base, kind, members } } as MapFeature;
     }
     if (kind === 'landmark') {
       const icon = f.properties.kind === 'landmark' ? f.properties.icon : '';
-      return { ...f, properties: { ...base, kind, icon } } as HindernisFeature;
+      return { ...f, properties: { ...base, kind, icon } } as MapFeature;
     }
-    return { ...f, properties: { ...base, kind } } as HindernisFeature;
+    return { ...f, properties: { ...base, kind } } as MapFeature;
   });
 }
 
-export function removeFeature(features: HindernisFeature[], id: string): HindernisFeature[] {
+export function removeFeature(features: MapFeature[], id: string): MapFeature[] {
   return features.filter((f) => f.id !== id);
 }
 
-export function addMember(features: HindernisFeature[], comboId: string): HindernisFeature[] {
+export function addMember(features: MapFeature[], comboId: string): MapFeature[] {
   return features.map((f) => {
     if (f.id !== comboId || f.properties.kind !== 'combi') return f;
     return {
@@ -1952,11 +1952,11 @@ export function addMember(features: HindernisFeature[], comboId: string): Hinder
 }
 
 export function updateMember(
-  features: HindernisFeature[],
+  features: MapFeature[],
   comboId: string,
   index: number,
   patch: Partial<Member>
-): HindernisFeature[] {
+): MapFeature[] {
   return features.map((f) => {
     if (f.id !== comboId || f.properties.kind !== 'combi') return f;
     const members = f.properties.members.map((m, i) => (i === index ? { ...m, ...patch } : m));
@@ -1965,10 +1965,10 @@ export function updateMember(
 }
 
 export function removeMember(
-  features: HindernisFeature[],
+  features: MapFeature[],
   comboId: string,
   index: number
-): HindernisFeature[] {
+): MapFeature[] {
   return features.map((f) => {
     if (f.id !== comboId || f.properties.kind !== 'combi') return f;
     return {
@@ -1995,7 +1995,7 @@ import { readKey, writeKey } from '$lib/storage/local';
 import * as mutations from '$lib/design/draftMutations';
 import type {
   FeatureCollection,
-  HindernisFeature,
+  MapFeature,
   Member,
   ObstacleFeature,
   CombiFeature,
@@ -2005,7 +2005,7 @@ import type {
 const DRAFT_KEY = 'durf:draft';
 
 export function createDraftState() {
-  let features = $state<HindernisFeature[]>([]);
+  let features = $state<MapFeature[]>([]);
   let club = $state('');
   let version = $state('');
   let isValid = $state(true);
@@ -2026,7 +2026,7 @@ export function createDraftState() {
     }
   }
 
-  function apply(next: HindernisFeature[]) {
+  function apply(next: MapFeature[]) {
     features = next;
     revalidateAndPersist();
   }
@@ -2073,7 +2073,7 @@ export function createDraftState() {
       hasStoredDraft = false;
     },
 
-    addFeature(feature: HindernisFeature) { apply(mutations.addFeature(features, feature)); },
+    addFeature(feature: MapFeature) { apply(mutations.addFeature(features, feature)); },
     updateFeature(id: string, patch: Record<string, unknown>) {
       apply(mutations.updateFeature(features, id, patch));
     },
@@ -2081,8 +2081,8 @@ export function createDraftState() {
       apply(mutations.setKind(features, id, kind));
     },
     removeFeature(id: string) { apply(mutations.removeFeature(features, id)); },
-    updateGeometry(id: string, geometry: HindernisFeature['geometry']) {
-      apply(features.map((f) => (f.id === id ? ({ ...f, geometry } as HindernisFeature) : f)));
+    updateGeometry(id: string, geometry: MapFeature['geometry']) {
+      apply(features.map((f) => (f.id === id ? ({ ...f, geometry } as MapFeature) : f)));
     },
     addMember(comboId: string) { apply(mutations.addMember(features, comboId)); },
     updateMember(comboId: string, index: number, patch: Partial<Member>) {
@@ -2136,7 +2136,7 @@ git commit -m "feat: add draft mutation helpers and draft state store"
 - Modify: `src/lib/map/LandmarkLayer.svelte`
 
 **Interfaces:**
-- Produces: `type DrawTool = 'point' | 'line' | 'polygon' | 'rectangle' | 'edit' | 'remove' | null` (its own module, not exported from a `.svelte` file — Svelte instance-script exports aren't guaranteed to surface as plain ES named exports the way a `.ts` module's are, so anything imported by more than one consumer lives in `.ts`). `DrawToolbar` — props `{ tool: DrawTool }` (bindable). `GeomanController` — props `{ tool: DrawTool; onCreate: (shape: 'Marker' | 'Line' | 'Polygon' | 'Rectangle', layer: L.Layer) => void; onEdit: (feature: HindernisFeature, layer: L.Layer) => void; onRemove: (feature: HindernisFeature) => void }`, reads the Leaflet map via the existing `getContext('map')` set up in `MapCanvas.svelte`.
+- Produces: `type DrawTool = 'point' | 'line' | 'polygon' | 'rectangle' | 'edit' | 'remove' | null` (its own module, not exported from a `.svelte` file — Svelte instance-script exports aren't guaranteed to surface as plain ES named exports the way a `.ts` module's are, so anything imported by more than one consumer lives in `.ts`). `DrawToolbar` — props `{ tool: DrawTool }` (bindable). `GeomanController` — props `{ tool: DrawTool; onCreate: (shape: 'Marker' | 'Line' | 'Polygon' | 'Rectangle', layer: L.Layer) => void; onEdit: (feature: MapFeature, layer: L.Layer) => void; onRemove: (feature: MapFeature) => void }`, reads the Leaflet map via the existing `getContext('map')` set up in `MapCanvas.svelte`.
 
 - [ ] **Step 0: Create the shared `DrawTool` type**
 
@@ -2260,7 +2260,7 @@ Add i18n keys to both locales in `src/lib/i18n/dict.ts`:
   import { getContext } from 'svelte';
   import L from 'leaflet';
   import '@geoman-io/leaflet-geoman-free';
-  import type { HindernisFeature } from '$lib/data/types';
+  import type { MapFeature } from '$lib/data/types';
   import type { DrawTool } from './drawTool';
 
   let {
@@ -2271,8 +2271,8 @@ Add i18n keys to both locales in `src/lib/i18n/dict.ts`:
   }: {
     tool: DrawTool;
     onCreate: (shape: 'Marker' | 'Line' | 'Polygon' | 'Rectangle', layer: L.Layer) => void;
-    onEdit: (feature: HindernisFeature, layer: L.Layer) => void;
-    onRemove: (feature: HindernisFeature) => void;
+    onEdit: (feature: MapFeature, layer: L.Layer) => void;
+    onRemove: (feature: MapFeature) => void;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
@@ -2293,11 +2293,11 @@ Add i18n keys to both locales in `src/lib/i18n/dict.ts`:
       map!.pm.disableDraw();
     }
     function handleEdit(e: { layer: L.Layer }) {
-      const feature = (e.layer as L.Layer & { feature?: HindernisFeature }).feature;
+      const feature = (e.layer as L.Layer & { feature?: MapFeature }).feature;
       if (feature) onEdit(feature, e.layer);
     }
     function handleRemove(e: { layer: L.Layer }) {
-      const feature = (e.layer as L.Layer & { feature?: HindernisFeature }).feature;
+      const feature = (e.layer as L.Layer & { feature?: MapFeature }).feature;
       if (feature) onRemove(feature);
     }
 
@@ -2356,7 +2356,7 @@ git commit -m "feat: add custom draw toolbar wired to leaflet-geoman"
 
 **Interfaces:**
 - Consumes: `Sheet`/`SheetContent`/`SheetHeader`/`SheetTitle`/`SheetFooter` (Task 3), `ToggleGroup`/`ToggleGroupItem` (Task 5), `IconPicker` (Task 11), `Input`/`Textarea`/`Label` (Task 2), `Button`, `DraftState` (Task 12) methods `updateFeature`/`setKind`/`removeFeature`/`addMember`/`updateMember`/`removeMember`.
-- Produces: props `{ feature: HindernisFeature | null; draft: DraftState; onRequestDelete: (id: string) => void; locale: Locale }`. Opens (`Sheet` `open`) whenever `feature` is non-null. `onRequestDelete` hands off to Task 15's `DiscardDraftDialog`-style confirm flow rather than deleting directly (kept as a callback so the AlertDialog can live in a shared place — see Task 15 wiring in Task 16).
+- Produces: props `{ feature: MapFeature | null; draft: DraftState; onRequestDelete: (id: string) => void; locale: Locale }`. Opens (`Sheet` `open`) whenever `feature` is non-null. `onRequestDelete` hands off to Task 15's `DiscardDraftDialog`-style confirm flow rather than deleting directly (kept as a callback so the AlertDialog can live in a shared place — see Task 15 wiring in Task 16).
 
 - [ ] **Step 1: Implement**
 
@@ -2371,7 +2371,7 @@ git commit -m "feat: add custom draw toolbar wired to leaflet-geoman"
   import IconPicker from './IconPicker.svelte';
   import { t, type Locale } from '$lib/i18n';
   import type { DraftState } from '$lib/state/draft.svelte';
-  import type { HindernisFeature } from '$lib/data/types';
+  import type { MapFeature } from '$lib/data/types';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
@@ -2381,7 +2381,7 @@ git commit -m "feat: add custom draw toolbar wired to leaflet-geoman"
     onRequestDelete,
     locale
   }: {
-    feature: HindernisFeature | null;
+    feature: MapFeature | null;
     draft: DraftState;
     onRequestDelete: (id: string) => void;
     locale: Locale;
@@ -2500,7 +2500,7 @@ git commit -m "feat: add custom draw toolbar wired to leaflet-geoman"
     onClose,
     locale
   }: {
-    feature: HindernisFeature | null;
+    feature: MapFeature | null;
     draft: DraftState;
     onRequestDelete: (id: string) => void;
     onClose: () => void;
@@ -2928,7 +2928,7 @@ git commit -m "feat: add draft status, discard, and export UI"
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
   import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
-  import type { HindernisFeature, FeatureCollection } from '$lib/data/types';
+  import type { MapFeature, FeatureCollection } from '$lib/data/types';
   import type L from 'leaflet';
 
   const app = createAppState();
@@ -2991,13 +2991,13 @@ git commit -m "feat: add draft status, discard, and export UI"
     app.selectFeature(id);
   }
 
-  function handleEdit(feature: HindernisFeature, layer: L.Layer) {
+  function handleEdit(feature: MapFeature, layer: L.Layer) {
     const geojson = (layer as L.Marker | L.Polyline | L.Polygon).toGeoJSON();
     const coordinates = roundCoords(geojson.geometry.coordinates);
     draft.updateGeometry(feature.id, { ...feature.geometry, coordinates });
   }
 
-  function handleRemove(feature: HindernisFeature) {
+  function handleRemove(feature: MapFeature) {
     draft.removeFeature(feature.id);
     if (app.selectedId === feature.id) app.selectFeature(null);
   }

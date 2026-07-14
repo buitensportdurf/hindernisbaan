@@ -16,6 +16,8 @@
     app = createAppState(),
     mode = 'map',
     hasDraftProblem = false,
+    draft = undefined,
+    fitFeatures: fitFeaturesProp = undefined,
     toolbar,
     editorPanel,
     menuStatusExtra,
@@ -24,6 +26,8 @@
     app?: AppState;
     mode?: 'map' | 'design';
     hasDraftProblem?: boolean;
+    draft?: import('$lib/state/draft.svelte').DraftState;
+    fitFeatures?: import('$lib/data/types').MapFeature[] | null;
     toolbar?: Snippet;
     editorPanel?: Snippet;
     menuStatusExtra?: Snippet;
@@ -69,18 +73,27 @@
     const loaderrKey = params?.get('loaderr');
     if (loaderrKey && loaderrKey in LOAD_ERROR_PREVIEWS) {
       app.setLoadError(LOAD_ERROR_PREVIEWS[loaderrKey]);
-    } else {
+    } else if (mode !== 'design') {
       load();
     }
     if (params?.has('tilesdown')) tilesDown = true;
   });
+
+  const fitFeaturesResolved = $derived(
+    fitFeaturesProp !== undefined
+      ? fitFeaturesProp
+      : app.loadState === 'loaded'
+        ? app.features
+        : null
+  );
 </script>
 
 <div class="fixed inset-0 overflow-hidden" class:has-selection={app.selectedId !== null}>
   <Toaster position="bottom-center" richColors closeButton />
   <MapCanvas
     tile={app.tile}
-    fitFeatures={app.loadState === 'loaded' ? app.features : null}
+    fitFeatures={fitFeaturesResolved}
+    doubleClickZoom={mode !== 'design'}
     onFailover={(n) => app.failoverTile(n)}
     onBothTilesDown={() => (tilesDown = true)}
     onDeselect={() => app.selectFeature(null)}
@@ -105,7 +118,7 @@
     {@render mapLayers?.()}
   </MapCanvas>
 
-  <Menu {app} onImport={handleImport} {mode} statusExtra={menuStatusExtra} {hasDraftProblem} />
+  <Menu {app} onImport={handleImport} {mode} {draft} statusExtra={menuStatusExtra} {hasDraftProblem} />
 
   {@render toolbar?.()}
   {@render editorPanel?.()}

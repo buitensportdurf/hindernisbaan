@@ -8,7 +8,7 @@ import {
   updateMember,
   removeMember
 } from './draftMutations';
-import type { HindernisFeature, ObstacleFeature, CombiFeature } from '$lib/data/types';
+import type { MapFeature, ObstacleFeature, CombiFeature } from '$lib/data/types';
 
 const obstacle: ObstacleFeature = {
   type: 'Feature',
@@ -67,7 +67,7 @@ describe('setKind', () => {
   });
 
   it('drops icon when switching landmark to obstacle', () => {
-    const landmark: HindernisFeature = {
+    const landmark: MapFeature = {
       type: 'Feature',
       id: 'lm-1',
       geometry: { type: 'Point', coordinates: [4.36, 52.02] },

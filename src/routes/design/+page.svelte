@@ -5,7 +5,6 @@
   import type { DrawTool } from '$lib/design/drawTool';
   import GeomanController from '$lib/design/GeomanController.svelte';
   import FeatureEditorSheet from '$lib/design/FeatureEditorSheet.svelte';
-  import DraftStatus from '$lib/design/DraftStatus.svelte';
   import { createAppState } from '$lib/state/app.svelte';
   import { createDraftState } from '$lib/state/draft.svelte';
   import { fetchFeatures, LoadError } from '$lib/data/loader';
@@ -13,7 +12,7 @@
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
   import LandmarkLayer from '$lib/map/LandmarkLayer.svelte';
-  import type { HindernisFeature, FeatureCollection } from '$lib/data/types';
+  import type { MapFeature } from '$lib/data/types';
   import type L from 'leaflet';
   import { t } from '$lib/i18n';
   import { toast } from 'svelte-sonner';
@@ -21,9 +20,30 @@
   const app = createAppState();
   const draft = createDraftState();
 
-  let liveData = $state<FeatureCollection | null>(null);
   let tool = $state<DrawTool>(null);
+  let detailsOpen = $state(false);
   let lastInvalidToastAt = 0;
+
+  const gesturesEnabled = () => tool === null;
+
+  function handleSelect(id: string) {
+    if (tool !== null) return;
+    app.selectFeature(id);
+  }
+
+  function handleOpenDetails(id: string) {
+    if (tool !== null) return;
+    app.selectFeature(id);
+    detailsOpen = true;
+  }
+
+  function closeDetails() {
+    detailsOpen = false;
+  }
+
+  $effect(() => {
+    if (app.selectedId === null) detailsOpen = false;
+  });
 
   $effect(() => {
     if (draft.isValid) return;
@@ -33,16 +53,36 @@
     toast.error(t(app.locale, 'draft.toast.invalid'));
   });
 
-  onMount(async () => {
-    app.setLoadState('loading');
-    try {
-      const col = await fetchFeatures();
-      liveData = col;
-      app.setData(col);
-      draft.loadOrInit(col);
-    } catch (err) {
-      app.setLoadError(err instanceof LoadError ? err.message : 'Onbekende fout / Unknown error');
+  onMount(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+      const el = e.target;
+      if (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        (el instanceof HTMLElement && el.isContentEditable)
+      ) {
+        return;
+      }
+      if (!app.selectedId || tool !== null) return;
+      e.preventDefault();
+      deleteSelectedFeature();
     }
+
+    window.addEventListener('keydown', onKeyDown);
+
+    (async () => {
+      app.setLoadState('loading');
+      try {
+        const col = await fetchFeatures();
+        app.setData(col);
+        draft.loadOrInit(col);
+      } catch (err) {
+        app.setLoadError(err instanceof LoadError ? err.message : 'Onbekende fout / Unknown error');
+      }
+    })();
+
+    return () => window.removeEventListener('keydown', onKeyDown);
   });
 
   function roundCoords<T>(coordinates: T): T {
@@ -58,12 +98,21 @@
     const id = generateId();
 
     if (shape === 'Marker') {
-      draft.addFeature({
-        type: 'Feature',
-        id,
-        geometry: { type: 'Point', coordinates: coordinates as [number, number] },
-        properties: { name: '', kind: 'obstacle' }
-      });
+      if (tool === 'landmark') {
+        draft.addFeature({
+          type: 'Feature',
+          id,
+          geometry: { type: 'Point', coordinates: coordinates as [number, number] },
+          properties: { name: '', kind: 'landmark', icon: 'flag' }
+        });
+      } else {
+        draft.addFeature({
+          type: 'Feature',
+          id,
+          geometry: { type: 'Point', coordinates: coordinates as [number, number] },
+          properties: { name: '', kind: 'obstacle' }
+        });
+      }
     } else if (shape === 'Line') {
       draft.addFeature({
         type: 'Feature',
@@ -89,68 +138,93 @@
 
     layer.remove(); // the *Layer components re-render this feature from draft state instead
     app.selectFeature(id);
+    detailsOpen = true;
     tool = null;
   }
 
-  function handleEdit(feature: HindernisFeature, layer: L.Layer) {
+  function handleEdit(feature: MapFeature, layer: L.Layer) {
     const geojson = (layer as L.Marker | L.Polyline | L.Polygon).toGeoJSON();
     const coordinates = roundCoords(geojson.geometry.coordinates);
+    const current = JSON.stringify(feature.geometry.coordinates);
+    const next = JSON.stringify(coordinates);
+    if (current === next) {
+      // #region agent log
+      fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-3',hypothesisId:'I',location:'+page.svelte:handleEdit',message:'handleEdit skipped unchanged geometry',data:{featureId:feature.id},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      return;
+    }
+    // #region agent log
+    fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-3',hypothesisId:'C',location:'+page.svelte:handleEdit',message:'handleEdit committed',data:{featureId:feature.id,kind:feature.properties.kind,geomType:feature.geometry.type},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     draft.updateGeometry(feature.id, {
       ...feature.geometry,
       coordinates
-    } as HindernisFeature['geometry']);
-  }
-
-  function handleRemove(feature: HindernisFeature) {
-    draft.removeFeature(feature.id);
-    if (app.selectedId === feature.id) app.selectFeature(null);
+    } as MapFeature['geometry']);
   }
 
   function handleDeleteSelected(id: string) {
     draft.removeFeature(id);
     app.selectFeature(null);
+    detailsOpen = false;
+    tool = null;
+  }
+
+  function handleRemove(feature: MapFeature) {
+    handleDeleteSelected(feature.id);
+  }
+
+  function deleteSelectedFeature() {
+    if (app.selectedId) handleDeleteSelected(app.selectedId);
   }
 
   const selectedFeature = $derived(draft.features.find((f) => f.id === app.selectedId) ?? null);
+  const fitFeatures = $derived(app.loadState === 'loaded' ? draft.features : null);
 </script>
 
-<AppShell {app} mode="design" hasDraftProblem={!draft.isValid}>
+<AppShell {app} mode="design" hasDraftProblem={!draft.isValid} {draft} {fitFeatures}>
   {#snippet toolbar()}
-    <DrawToolbar bind:tool locale={app.locale} />
+    <DrawToolbar
+      bind:tool
+      locale={app.locale}
+      selectedId={app.selectedId}
+      onDeleteSelected={deleteSelectedFeature}
+    />
   {/snippet}
 
   {#snippet editorPanel()}
     <FeatureEditorSheet
+      bind:open={detailsOpen}
       feature={selectedFeature}
       {draft}
       onRequestDelete={handleDeleteSelected}
-      onClose={() => app.selectFeature(null)}
+      onClose={closeDetails}
       locale={app.locale}
     />
   {/snippet}
 
-  {#snippet menuStatusExtra()}
-    {#if liveData}
-      <DraftStatus {draft} live={liveData} locale={app.locale} />
-    {/if}
-  {/snippet}
 
   {#snippet mapLayers()}
-    <GeomanController {tool} onCreate={handleCreate} onEdit={handleEdit} onRemove={handleRemove} />
+    <GeomanController {tool} selectedId={app.selectedId} onCreate={handleCreate} onEdit={handleEdit} onRemove={handleRemove} />
     <ObstacleLayer
       features={draft.obstacles}
       selectedId={app.selectedId}
-      onSelect={(id) => app.selectFeature(id)}
+      onSelect={handleSelect}
+      onOpenDetails={handleOpenDetails}
+      {gesturesEnabled}
     />
     <CombiLayer
       features={draft.combis}
       selectedId={app.selectedId}
-      onSelect={(id) => app.selectFeature(id)}
+      onSelect={handleSelect}
+      onOpenDetails={handleOpenDetails}
+      {gesturesEnabled}
     />
     <LandmarkLayer
       features={draft.landmarks}
       selectedId={app.selectedId}
-      onSelect={(id) => app.selectFeature(id)}
+      onSelect={handleSelect}
+      onOpenDetails={handleOpenDetails}
+      {gesturesEnabled}
     />
   {/snippet}
 </AppShell>
