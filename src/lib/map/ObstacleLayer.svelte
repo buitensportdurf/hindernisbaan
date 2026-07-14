@@ -30,9 +30,6 @@
   });
 
   useMapLayer((group) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix',hypothesisId:'A',location:'ObstacleLayer.svelte:setup',message:'ObstacleLayer rebuild',data:{featureCount:features.length},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     function attach(layer: L.Layer, f: ObstacleFeature) {
       (layer as L.Layer & { feature?: ObstacleFeature }).feature = f;
       attachFeatureGestures(layer, f.id, {

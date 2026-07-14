@@ -216,9 +216,6 @@
             pm.disableRotate?.();
             if (!pmAny.layerDragEnabled?.()) pm.enableLayerDrag?.();
           }
-          // #region agent log
-          fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-9',hypothesisId:'N',location:'GeomanController.svelte:syncSelectedLayerPm',message:'PM enabled on selected layer',data:{featureId:feature.id,kind,geomType:feature.geometry.type,editEnabled:pmAny.enabled?.(),dragEnabled:pmAny.layerDragEnabled?.(),rotateEnabled:pmAny.rotateEnabled?.(),customRotateHandle:kind==='combi',layerType:(layer as L.Layer & {constructor?:{name?:string}}).constructor?.name,pmShape:(pm as PmLayer & {getShape?:()=>string}).getShape?.()},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion
         } else {
           if (kind === 'combi') removeCombiRotateHandle(map, feature.id);
           if (pmAny.layerDragEnabled?.()) pm.disableLayerDrag?.();

@@ -101,9 +101,6 @@
       const suppressed = shouldSuppressMapDeselect();
       const geomanHandle = isGeomanHandleTarget(e.originalEvent.target);
       const featureSurface = isFeatureSurfaceTarget(e.originalEvent.target);
-      // #region agent log
-      fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-7',hypothesisId:'K',location:'MapCanvas.svelte:mapClick',message:'map click deselect check',data:{suppressed,geomanHandle,featureSurface,willDeselect:!suppressed&&!geomanHandle&&!featureSurface,targetTag:(e.originalEvent.target as Element|undefined)?.className},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       if (suppressed || geomanHandle || featureSurface) return;
       onDeselect?.();
     });

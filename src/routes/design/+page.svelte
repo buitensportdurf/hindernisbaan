@@ -148,14 +148,8 @@
     const current = JSON.stringify(feature.geometry.coordinates);
     const next = JSON.stringify(coordinates);
     if (current === next) {
-      // #region agent log
-      fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-3',hypothesisId:'I',location:'+page.svelte:handleEdit',message:'handleEdit skipped unchanged geometry',data:{featureId:feature.id},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       return;
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7685/ingest/7b7b46c0-0cc3-475a-b808-df9dc5c6f93b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'88bc55'},body:JSON.stringify({sessionId:'88bc55',runId:'post-fix-3',hypothesisId:'C',location:'+page.svelte:handleEdit',message:'handleEdit committed',data:{featureId:feature.id,kind:feature.properties.kind,geomType:feature.geometry.type},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     draft.updateGeometry(feature.id, {
       ...feature.geometry,
       coordinates
