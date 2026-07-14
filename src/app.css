@@ -187,6 +187,11 @@ html, body { margin: 0; height: 100%; }
   font-weight: var(--fw-medium);
   color: var(--gray-400);
   pointer-events: none;
+  transition: opacity 180ms ease-out;
+}
+
+.combi-count--hidden {
+  opacity: 0;
 }
 
 /* Landmark pill */

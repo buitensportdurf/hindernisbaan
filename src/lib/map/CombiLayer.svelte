@@ -63,6 +63,10 @@
     return str || 'M0 0';
   }
 
+  // Min screen-space edge length (px) below which the count hides.
+  // Lower = count survives further zoom-out; one Leaflet zoom step halves the on-screen size.
+  const COUNT_FIT_THRESHOLD = 16;
+
   useMapLayer((group) => {
     const activeSelectedId = selectedId;
     for (const f of features) {
@@ -77,6 +81,26 @@
         className: 'combi-zone'
       });
       rectangle.setLatLngs(latlngs);
+
+      const count = f.properties.members.length;
+      const showCount = activeSelectedId === null || activeSelectedId === f.id;
+      const countMarker = count > 0 && showCount
+        ? L.marker(rectangle.getBounds().getCenter(), {
+            icon: L.divIcon({
+              html: String(count),
+              className: 'combi-count',
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            }),
+            interactive: false,
+            pmIgnore: true
+          })
+        : null;
+
+      let lastMinEdge = Infinity;
+      const syncCountVisibility = () => {
+        countMarker?.getElement()?.classList.toggle('combi-count--hidden', lastMinEdge < COUNT_FIT_THRESHOLD);
+      };
 
       const origUpdatePath = (rectangle as L.Rectangle & { _updatePath: () => void })._updatePath.bind(rectangle);
       (rectangle as L.Rectangle & { _updatePath: () => void })._updatePath = function () {
@@ -95,6 +119,8 @@
         const r = minEdge === Infinity ? 0 : minEdge / 2;
         const path = (rectangle as L.Rectangle & { _path?: SVGPathElement })._path;
         path?.setAttribute('d', roundedPolyPath(parts, r));
+        lastMinEdge = minEdge;
+        syncCountVisibility();
       };
 
       (rectangle as L.Layer & { feature?: CombiFeature }).feature = f;
@@ -106,19 +132,10 @@
       group.addLayer(rectangle);
       bindFilledPathTooltip(rectangle, f.properties.name);
 
-      const count = f.properties.members.length;
-      const showCount = activeSelectedId === null || activeSelectedId === f.id;
-      if (count > 0 && showCount) {
-        group.addLayer(L.marker(rectangle.getBounds().getCenter(), {
-          icon: L.divIcon({
-            html: String(count),
-            className: 'combi-count',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
-          }),
-          interactive: false,
-          pmIgnore: true
-        }));
+      if (countMarker) {
+        group.addLayer(countMarker);
+        // _updatePath may have fired before the marker element existed.
+        syncCountVisibility();
       }
     }
   });
