@@ -13,14 +13,14 @@ export const TILE_LAYERS: Record<TileKey, TileLayerDef> = {
     key: 'map',
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
     attribution: '© OpenStreetMap © CARTO',
-    maxZoom: 19,
+    maxZoom: 20,
     subdomains: 'abcd'
   },
   sat: {
     key: 'sat',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: '© Esri',
-    maxZoom: 19
+    maxZoom: 20
   }
 };
 
