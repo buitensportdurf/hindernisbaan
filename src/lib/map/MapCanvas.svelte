@@ -10,6 +10,7 @@
   let {
     tile = 'map',
     fitFeatures,
+    fitEpoch = 0,
     doubleClickZoom = true,
     onReady,
     onFailover,
@@ -19,6 +20,8 @@
   }: {
     tile?: TileKey;
     fitFeatures?: MapFeature[] | null;
+    /** Fit-to-features runs once per epoch — bump it to request a new fit. */
+    fitEpoch?: number;
     doubleClickZoom?: boolean;
     onReady?: () => void;
     onFailover?: (next: TileKey) => void;
@@ -33,26 +36,18 @@
   let layers: Partial<Record<TileKey, L.TileLayer>> = {};
   let active: TileKey | undefined;
   let failedOnce = false;
-  let lastFitKey = '';
-
-  function fitKey(features: MapFeature[]): string {
-    return features
-      .map((f) => f.id)
-      .sort()
-      .join('|');
-  }
+  let lastFitEpoch: number | undefined;
 
   setContext('map', () => map);
 
   $effect(() => {
     if (!map || !fitFeatures || fitFeatures.length === 0) return;
-    const key = fitKey(fitFeatures);
-    if (lastFitKey === key) return;
+    if (fitEpoch === lastFitEpoch) return;
     const bounds = L.geoJSON({ type: 'FeatureCollection', features: fitFeatures } as FeatureCollection).getBounds();
     if (bounds.isValid()) {
       map.invalidateSize();
       map.fitBounds(bounds, { padding: [48, 48], maxZoom: 18 });
-      lastFitKey = key;
+      lastFitEpoch = fitEpoch;
     }
   });
 

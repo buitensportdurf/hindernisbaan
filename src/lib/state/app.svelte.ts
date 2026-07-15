@@ -25,6 +25,8 @@ export function createAppState() {
   let menuLevel = $state<MenuLevel>('root');
 
   let features = $state<MapFeature[]>([]);
+  // Bumped on every setData; MapCanvas fits the view once per epoch (load/import).
+  let dataEpoch = $state(0);
   let dataVersion = $state<string | null>(null);
   let dataClub = $state<string | null>(null);
   let selectedId = $state<string | null>(null);
@@ -37,6 +39,7 @@ export function createAppState() {
     get menuOpen() { return menuOpen; },
     get menuLevel() { return menuLevel; },
     get features() { return features; },
+    get dataEpoch() { return dataEpoch; },
     get dataVersion() { return dataVersion; },
     get dataClub() { return dataClub; },
     get dataCount() { return features.length; },
@@ -66,6 +69,7 @@ export function createAppState() {
 
     setData(col: FeatureCollection) {
       features = col.features;
+      dataEpoch += 1;
       dataVersion = col.version;
       dataClub = col.club;
       loadError = null;

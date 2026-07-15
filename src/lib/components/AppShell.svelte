@@ -93,6 +93,7 @@
   <MapCanvas
     tile={app.tile}
     fitFeatures={fitFeaturesResolved}
+    fitEpoch={app.dataEpoch}
     doubleClickZoom={mode !== 'design'}
     onFailover={(n) => app.failoverTile(n)}
     onBothTilesDown={() => (tilesDown = true)}
