@@ -3,6 +3,7 @@
   import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import { ALL_ICON_NAMES, filterIconNames, getIconComponent } from '$lib/durf-ds/icons';
+  import { focusById } from '$lib/utils';
   import { t, type Locale } from '$lib/i18n';
   import ImageIcon from '@lucide/svelte/icons/image';
   import Loader2Icon from '@lucide/svelte/icons/loader-2';
@@ -77,10 +78,18 @@
       </Button>
     {/snippet}
   </PopoverTrigger>
-  <PopoverContent class="w-72 p-0" align="start">
+  <PopoverContent
+    class="w-72 p-0"
+    align="start"
+    onOpenAutoFocus={(e) => {
+      e.preventDefault();
+      focusById('icon-picker-search');
+    }}
+  >
     <div class="flex items-center gap-2 border-b px-3 py-2">
       <SearchIcon class="size-4 shrink-0 text-muted-foreground" />
       <Input
+        id="icon-picker-search"
         bind:value={query}
         placeholder={t(locale, 'design.icon.search')}
         class="h-8 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"

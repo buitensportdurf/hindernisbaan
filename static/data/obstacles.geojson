@@ -1,94 +1,1125 @@
 {
   "type": "FeatureCollection",
   "club": "Buitensport Durf",
-  "version": "2026-07-09",
+  "version": "2026-07-15",
   "features": [
     {
       "type": "Feature",
-      "id": "a1b2c3d4-0001-4000-8000-e0f1a2b3c4d5",
-      "geometry": { "type": "Point", "coordinates": [4.3648, 52.0272] },
-      "properties": { "name": "Klimrek", "kind": "obstacle" }
-    },
-    {
-      "type": "Feature",
-      "id": "a1b2c3d4-0002-4000-8000-e0f1a2b3c4d5",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [[4.3651, 52.027], [4.3653, 52.0271], [4.3655, 52.027]]
-      },
-      "properties": {
-        "name": "Balkenpad",
-        "kind": "obstacle",
-        "notes": "Vijf balken op gelijke hoogte, gevorderd niveau"
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "a1b2c3d4-0003-4000-8000-e0f1a2b3c4d5",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [4.366, 52.0268],
-            [4.3664, 52.0268],
-            [4.3664, 52.027],
-            [4.366, 52.027],
-            [4.366, 52.0268]
-          ]
-        ]
-      },
-      "properties": { "name": "Zandbak", "kind": "obstacle" }
-    },
-    {
-      "type": "Feature",
-      "id": "a1b2c3d4-0004-4000-8000-e0f1a2b3c4d5",
-      "geometry": { "type": "Point", "coordinates": [4.3656, 52.0267] },
-      "properties": {
-        "name": "Touwenparcours",
-        "kind": "obstacle",
-        "notes": "Zes stations, begin bij de paal met het rode lint"
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "a1b2c3d4-0005-4000-8000-e0f1a2b3c4d5",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [4.3643, 52.0274],
-            [4.365, 52.0274],
-            [4.365, 52.0278],
-            [4.3643, 52.0278],
-            [4.3643, 52.0274]
-          ]
-        ]
-      },
-      "properties": {
-        "name": "Trapeziumzone",
-        "kind": "combi",
-        "members": [
-          { "name": "Schommel", "position": [4.3645, 52.0275] },
-          { "name": "Ladder", "position": [4.3647, 52.0276] },
-          { "name": "Touw", "position": [4.3649, 52.0275] }
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "a1b2c3d4-0006-4000-8000-e0f1a2b3c4d5",
-      "geometry": { "type": "Point", "coordinates": [4.3638, 52.0268] },
-      "properties": { "name": "Ingang", "kind": "landmark", "icon": "flag" }
-    },
-    {
-      "type": "Feature",
       "id": "a1b2c3d4-0007-4000-8000-e0f1a2b3c4d5",
-      "geometry": { "type": "Point", "coordinates": [4.367, 52.0265] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.368715,
+          52.030272
+        ]
+      },
       "properties": {
-        "name": "Parkeerplaats",
+        "name": "Parking",
         "kind": "landmark",
         "icon": "car",
-        "notes": "Gratis parkeren, max 2 uur"
+        "notes": "Gratis parkeren"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a649aeb7-edef-42aa-aeae-7cf35345f76e",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.369308,
+          52.029975
+        ]
+      },
+      "properties": {
+        "name": "Fietsenstalling",
+        "kind": "landmark",
+        "icon": "bike"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cb3af5c4-f8ba-46f4-9761-b2d2934da632",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.368956,
+          52.029264
+        ]
+      },
+      "properties": {
+        "name": "Verzamelpunt",
+        "kind": "landmark",
+        "icon": "house"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "073ad15e-a39f-4bd5-a49b-b98f38729f5a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.369158,
+              52.030117
+            ],
+            [
+              4.369001,
+              52.030045
+            ],
+            [
+              4.368966,
+              52.030074
+            ],
+            [
+              4.369123,
+              52.030145
+            ],
+            [
+              4.369158,
+              52.030117
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Daknetcombi",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "Daknet"
+          },
+          {
+            "name": "Steigerbuis"
+          },
+          {
+            "name": "Touwgordijn"
+          },
+          {
+            "name": "Zwevende lianen"
+          },
+          {
+            "name": "Enterplank"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "2518687a-ee7c-4095-8065-3441ca82d70f",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.368854,
+            52.030002
+          ],
+          [
+            4.368868,
+            52.030048
+          ],
+          [
+            4.368967,
+            52.03
+          ],
+          [
+            4.368966,
+            52.030074
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Zigzag apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "3e8ceedc-75de-41b3-826a-3112d258293c",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.368455,
+            52.029834
+          ],
+          [
+            4.368854,
+            52.030002
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang langs sloot",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "3e8c3487-a2a3-424d-b11e-207727c71f1d",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.368452,
+          52.029779
+        ]
+      },
+      "properties": {
+        "name": "Korte touw swingover",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "38b67e3e-ef36-4394-8b26-e153a94b6cf8",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.368369,
+          52.029763
+        ]
+      },
+      "properties": {
+        "name": "BWO rekhof & PVC klimbuis",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "af8571b7-ad15-4da6-8df5-73d09a99fdcb",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.368618,
+              52.029612
+            ],
+            [
+              4.368475,
+              52.029743
+            ],
+            [
+              4.368421,
+              52.02972
+            ],
+            [
+              4.368564,
+              52.02959
+            ],
+            [
+              4.368618,
+              52.029612
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Spaanse ruiter",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "Spaanse ruiter"
+          },
+          {
+            "name": "Apenhang"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "534d9d7e-1822-4a15-baf3-9e3936fdef37",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.36874,
+              52.029529
+            ],
+            [
+              4.368987,
+              52.029295
+            ],
+            [
+              4.368901,
+              52.029261
+            ],
+            [
+              4.368654,
+              52.029494
+            ],
+            [
+              4.36874,
+              52.029529
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Wifi combi",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "lage SO’s"
+          },
+          {
+            "name": "lianen langs bomen"
+          },
+          {
+            "name": "brandweerslang apenhang"
+          },
+          {
+            "name": "beltrums lusjes"
+          },
+          {
+            "name": "brandweerslang apenhang 2x"
+          },
+          {
+            "name": "apenhang met schot / plaat"
+          },
+          {
+            "name": "moeilijk SO’s"
+          },
+          {
+            "name": "autobanden apenhang"
+          },
+          {
+            "name": "selfmade apenhang"
+          },
+          {
+            "name": "schuiflussen"
+          },
+          {
+            "name": "palentarzan"
+          },
+          {
+            "name": "monkeybar Xtra"
+          },
+          {
+            "name": "pegboard en ringpegs"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "5bae9d94-f90f-4b3e-bc17-b33c4c4bfc42",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.369254,
+          52.028959
+        ]
+      },
+      "properties": {
+        "name": "Houthak station",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ad2bc5de-c6a0-410a-8654-604dae4bbe17",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.369506,
+              52.028776
+            ],
+            [
+              4.36932,
+              52.028936
+            ],
+            [
+              4.369245,
+              52.028903
+            ],
+            [
+              4.369431,
+              52.028743
+            ],
+            [
+              4.369506,
+              52.028776
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Mini Maxi Combi",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "kabouter tarzan"
+          },
+          {
+            "name": "balpol liaan friesche"
+          },
+          {
+            "name": "ruiter"
+          },
+          {
+            "name": "staplussen"
+          },
+          {
+            "name": "lianen"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ea11dffe-4aa1-48d1-b865-a837c37287c2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.369596,
+              52.028602
+            ],
+            [
+              4.369508,
+              52.028678
+            ],
+            [
+              4.369578,
+              52.028709
+            ],
+            [
+              4.369666,
+              52.028633
+            ],
+            [
+              4.369596,
+              52.028602
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Net Combi",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "daknetten met oversteek"
+          },
+          {
+            "name": "hoge SO’s"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "d678d8b8-0b54-4f70-ba87-4df55c7124b8",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.369431,
+            52.028743
+          ],
+          [
+            4.369508,
+            52.028678
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Boomdoorsteek apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "f05f9f7d-6ff3-4010-9f05-4e8bb529a483",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.369715,
+          52.028555
+        ]
+      },
+      "properties": {
+        "name": "Wentelteefje / wiebertje",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "11e3486d-2d9d-4160-8bd1-cd96876c86a5",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.369817,
+              52.028404
+            ],
+            [
+              4.369887,
+              52.028429
+            ],
+            [
+              4.369816,
+              52.028506
+            ],
+            [
+              4.369747,
+              52.028482
+            ],
+            [
+              4.369817,
+              52.028404
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Friesche ruiter",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "Friesche ruiter"
+          },
+          {
+            "name": "Zwevende balk"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "af5c724f-b396-412e-8270-df2a70fa32be",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.36997,
+              52.028249
+            ],
+            [
+              4.36988,
+              52.028345
+            ],
+            [
+              4.369978,
+              52.02838
+            ],
+            [
+              4.370068,
+              52.028284
+            ],
+            [
+              4.36997,
+              52.028249
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenkooi",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "triangels"
+          },
+          {
+            "name": "rekstokken"
+          },
+          {
+            "name": "kartbandjes"
+          },
+          {
+            "name": "rijplaten"
+          },
+          {
+            "name": "Beltrums lusje"
+          },
+          {
+            "name": "pakplanken"
+          },
+          {
+            "name": "autobanden SO"
+          },
+          {
+            "name": "verticaal net"
+          },
+          {
+            "name": "Elastiek SO"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "d144610a-da8b-4db1-8c9b-dcfa8033a898",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.36984,
+            52.028412
+          ],
+          [
+            4.369882,
+            52.028351
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "8fb6cd83-77c7-4449-b3d4-c6b16b3fd471",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.369747,
+            52.028482
+          ],
+          [
+            4.369571,
+            52.028492
+          ],
+          [
+            4.369596,
+            52.028602
+          ]
+        ]
+      },
+      "properties": {
+        "name": "AV40 apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "dd3eb0b3-0689-4a9b-b470-04ca4affa3ed",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.36984,
+            52.02836
+          ],
+          [
+            4.369695,
+            52.028294
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "8a70a168-12aa-47ee-9497-b72de6df2941",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.369695,
+          52.028294
+        ]
+      },
+      "properties": {
+        "name": "Grote zwaai (Veni Vidi Vici)",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "e05329e1-31b4-46ad-b82c-f6689291fe19",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.370275,
+          52.028239
+        ]
+      },
+      "properties": {
+        "name": "Postmanwalk",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "5b419ad0-8759-4421-8c06-824fb18bf399",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.37033,
+          52.028257
+        ]
+      },
+      "properties": {
+        "name": "Evenwichtsbalken",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "b69395bc-70c1-4ff0-ac1f-2335c2ec6fa3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.370567,
+              52.028406
+            ],
+            [
+              4.37053,
+              52.028438
+            ],
+            [
+              4.370373,
+              52.028368
+            ],
+            [
+              4.37041,
+              52.028336
+            ],
+            [
+              4.370567,
+              52.028406
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Lianen combi",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "korte touwtjes"
+          },
+          {
+            "name": "monkeybars"
+          },
+          {
+            "name": "staplussen"
+          },
+          {
+            "name": "lianen"
+          },
+          {
+            "name": "zwaailussen"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a223405f-fc39-4e3c-9acd-ec3c836c4c2d",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.370597,
+            52.02833
+          ],
+          [
+            4.370519,
+            52.028388
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "99a6cfd8-f673-4114-8ef6-8199e30134d3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.370552,
+            52.028302
+          ],
+          [
+            4.370465,
+            52.028364
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "0d601762-068c-40a6-a105-1b0f0d3e74e2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.370552,
+            52.028302
+          ],
+          [
+            4.370597,
+            52.02833
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Postmanwalk",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "330b73b2-5112-4593-8e62-f91e4d9fb3be",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.37062,
+              52.028473
+            ],
+            [
+              4.370684,
+              52.028503
+            ],
+            [
+              4.370717,
+              52.028476
+            ],
+            [
+              4.370653,
+              52.028446
+            ],
+            [
+              4.37062,
+              52.028473
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Werner weaver",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "Werner weaver"
+          },
+          {
+            "name": "Balkenladder"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "9d3b9693-27f7-4253-9f00-813250ac4b2a",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.370717,
+            52.028476
+          ],
+          [
+            4.370803,
+            52.028474
+          ],
+          [
+            4.371161,
+            52.028622
+          ],
+          [
+            4.371232,
+            52.028621
+          ]
+        ]
+      },
+      "properties": {
+        "name": "\"Lange Mark\" sloot apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "71fe9f4f-e00b-4d82-8175-5a542f1748e7",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.370802,
+            52.028532
+          ],
+          [
+            4.370684,
+            52.028503
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "3e3ae31e-44b5-4b81-a9a6-1a003df1a54a",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.370802,
+            52.028532
+          ],
+          [
+            4.370804,
+            52.028423
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "1b9bafa8-04b9-48a4-94e2-4c6c1005b7c3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.370802,
+            52.028532
+          ],
+          [
+            4.370897,
+            52.028456
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "dbe1eb5c-3edd-4ec5-ac9d-ca41c9830b8a",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.37114,
+              52.028648
+            ],
+            [
+              4.371095,
+              52.028683
+            ],
+            [
+              4.371173,
+              52.028721
+            ],
+            [
+              4.371218,
+              52.028685
+            ],
+            [
+              4.37114,
+              52.028648
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Notenkraker",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "Notenkraker (zwevende balken)"
+          },
+          {
+            "name": "Evenwichtsbalk"
+          },
+          {
+            "name": "Brievenbus balken"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "28e61403-493a-4e6c-97a1-442f278ace20",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.371218,
+            52.028685
+          ],
+          [
+            4.371283,
+            52.028643
+          ]
+        ]
+      },
+      "properties": {
+        "name": "XTC-ton apenhang",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "c83d7f2e-def8-463d-8e63-53d21b7cff7d",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.371173,
+            52.028664
+          ],
+          [
+            4.371232,
+            52.028621
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Autobanden lianen",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "e3d6678d-1530-464d-9368-bb295d77650a",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.369112,
+          52.029073
+        ]
+      },
+      "properties": {
+        "name": "Balkenopslag",
+        "kind": "landmark",
+        "icon": "flag"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "9d511acf-ff3f-4e0b-b0c2-bad9a6df4ae1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.371731,
+          52.028967
+        ]
+      },
+      "properties": {
+        "name": "Paalklim",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "f6f163a3-028a-4ee5-a87e-df03dcb96ac1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            4.371754,
+            52.028938
+          ],
+          [
+            4.371814,
+            52.028884
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Touwkruis",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "78a17d9c-fb4f-4ed9-aa45-3c41fd9d6993",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.371584,
+          52.029526
+        ]
+      },
+      "properties": {
+        "name": "Swingovers",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a8d33bd1-b879-41f1-ac8a-4d0eed0feebf",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.371363,
+              52.029684
+            ],
+            [
+              4.371314,
+              52.029734
+            ],
+            [
+              4.371388,
+              52.029762
+            ],
+            [
+              4.371437,
+              52.029712
+            ],
+            [
+              4.371363,
+              52.029684
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Tarzan Cirkel",
+        "kind": "combi",
+        "members": [
+          {
+            "name": "lianen"
+          },
+          {
+            "name": "entertouw"
+          },
+          {
+            "name": "gekke SO's"
+          },
+          {
+            "name": "huilebalk SO's"
+          }
+        ]
       }
     }
   ]

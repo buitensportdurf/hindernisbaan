@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { focusById } from '$lib/utils';
   import {
     Drawer,
     DrawerContent,
@@ -61,16 +61,21 @@
     }
   });
 
-  async function openNotes() {
+  function openNotes() {
     notesOpen = true;
-    await tick();
-    document.getElementById('feature-notes')?.focus();
+    focusById('feature-notes');
   }
 
-  async function openMemberNotes(index: number) {
+  function openMemberNotes(index: number) {
     memberNotesOpen = { ...memberNotesOpen, [index]: true };
-    await tick();
-    document.getElementById(`member-notes-${index}`)?.focus();
+    focusById(`member-notes-${index}`);
+  }
+
+  function addMember() {
+    if (!feature || feature.properties.kind !== 'combi') return;
+    const newIndex = feature.properties.members.length;
+    draft.addMember(feature.id);
+    focusById(`member-name-${newIndex}`);
   }
 
   function removeNotes() {
@@ -108,7 +113,12 @@
 
 <Drawer bind:open onOpenChange={(v) => { if (!v) onClose(); }}>
   {#if feature}
-    <DrawerContent>
+    <DrawerContent
+      onOpenAutoFocus={(e) => {
+        e.preventDefault();
+        focusById('feature-name');
+      }}
+    >
       <DrawerTitle class="sr-only">
         {feature.properties.name || t(locale, 'design.editor.untitled')}
       </DrawerTitle>
@@ -177,6 +187,7 @@
               <div class="flex flex-col gap-1.5">
                 <div class="flex items-start gap-2">
                   <Input
+                    id="member-name-{i}"
                     class="min-w-0 flex-1"
                     value={member.name}
                     placeholder={t(locale, 'design.editor.members.name')}
@@ -216,7 +227,7 @@
               variant="outline"
               size="sm"
               class="self-start"
-              onclick={() => draft.addMember(feature!.id)}
+              onclick={addMember}
             >
               <PlusIcon class="size-3.5" />
               {t(locale, 'design.editor.members.add')}

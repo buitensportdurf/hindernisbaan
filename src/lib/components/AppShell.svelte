@@ -39,7 +39,7 @@
   const LOAD_ERROR_PREVIEWS: Record<string, string> = {
     network: 'Failed to fetch',
     json: 'Invalid JSON in file',
-    schema: "Invalid map data: data must have required property 'features'"
+    schema: "Invalid obstacle course: data must have required property 'features'"
   };
 
   function devSearchParams(): URLSearchParams | null {
@@ -86,7 +86,20 @@
         ? app.features
         : null
   );
+
+  function handleWindowKeydown(e: KeyboardEvent) {
+    if (e.key !== 'Escape') return;
+    // Overlays (drawers, popovers) consume Escape first; peel one layer per press.
+    if (e.defaultPrevented) return;
+    if (app.menuOpen) {
+      app.closeMenu();
+      return;
+    }
+    if (app.selectedId !== null) app.selectFeature(null);
+  }
 </script>
+
+<svelte:window onkeydown={handleWindowKeydown} />
 
 <div class="fixed inset-0 overflow-hidden" class:has-selection={app.selectedId !== null}>
   <Toaster position="bottom-center" richColors closeButton />

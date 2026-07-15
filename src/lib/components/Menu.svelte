@@ -3,7 +3,7 @@
   import type { TileKey } from '$lib/map/tiles';
   import type { AppState } from '$lib/state/app.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { cn } from '$lib/utils';
+  import { cn, focusById } from '$lib/utils';
   import { Card, CardTitle } from '$lib/components/ui/card';
   import MapDataStatus from './MapDataStatus.svelte';
   import type { Snippet } from 'svelte';
@@ -39,10 +39,15 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
   const PANEL_MS = 220;
   let panelMounted = $state(false);
   let panelOpen = $state(false);
+  // Only restore focus to the trigger after the panel actually opened,
+  // so we don't steal focus on initial page load.
+  let restoreTriggerFocus = false;
 
   $effect(() => {
     if (app.menuOpen) {
       panelMounted = true;
+      restoreTriggerFocus = true;
+      focusById('menu-close-button');
       const frame = requestAnimationFrame(() => {
         panelOpen = true;
       });
@@ -52,6 +57,10 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
     panelOpen = false;
     const timeout = setTimeout(() => {
       panelMounted = false;
+      if (restoreTriggerFocus) {
+        restoreTriggerFocus = false;
+        focusById('menu-open-button');
+      }
     }, PANEL_MS);
     return () => clearTimeout(timeout);
   });
@@ -118,6 +127,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
         <div bind:this={measureEl}>
           <header class="flex items-center gap-3 p-3 pb-2">
             <Button
+              id="menu-close-button"
               variant="outline"
               size="icon"
               class="shrink-0"
@@ -251,6 +261,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
   {:else}
     <div class="relative p-3">
       <Button
+        id="menu-open-button"
         variant="outline"
         size="icon"
         aria-label={t(app.locale, 'menu.settings')}

@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { t, type Locale } from '$lib/i18n';
+  import { focusById } from '$lib/utils';
   import { Button } from '$lib/components/ui/button';
   import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
 
@@ -16,6 +18,10 @@
   } = $props();
 
   let fileInput: HTMLInputElement;
+
+  onMount(() => {
+    focusById('load-fail-retry');
+  });
 
   async function handleFileChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -47,7 +53,7 @@
     </div>
 
     <div class="flex w-full flex-col gap-2">
-      <Button onclick={onRetry} class="w-full">{t(locale, 'load.retry')}</Button>
+      <Button id="load-fail-retry" onclick={onRetry} class="w-full">{t(locale, 'load.retry')}</Button>
       <Button variant="outline" class="w-full" onclick={() => fileInput.click()}>
         {t(locale, 'load.import')}
       </Button>

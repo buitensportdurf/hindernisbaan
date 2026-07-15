@@ -45,6 +45,13 @@
     if (app.selectedId === null) detailsOpen = false;
   });
 
+  // Starting a new drawing exits the current selection.
+  $effect(() => {
+    if (tool !== null && app.selectedId !== null) {
+      app.selectFeature(null);
+    }
+  });
+
   $effect(() => {
     if (draft.isValid) return;
     const now = Date.now();
@@ -55,6 +62,12 @@
 
   onMount(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        // Cancel an active draw tool; Geoman aborts its own draw on Escape,
+        // so this keeps the toolbar state in sync with the map.
+        if (tool !== null) tool = null;
+        return;
+      }
       if (e.key !== 'Backspace' && e.key !== 'Delete') return;
       const el = e.target;
       if (

@@ -25,7 +25,7 @@ export function validateCollection(data: unknown): ValidationResult {
 function assertValid(data: unknown): asserts data is FeatureCollection {
   const result = validateCollection(data);
   if (!result.valid) {
-    throw new LoadError(`Invalid map data: ${result.errors}`);
+    throw new LoadError(`Invalid obstacle course: ${result.errors}`);
   }
 }
 
@@ -41,7 +41,7 @@ export async function fetchFeatures(
     data = await res.json();
   } catch (err) {
     throw new LoadError(
-      err instanceof Error ? err.message : 'Failed to fetch map data',
+      err instanceof Error ? err.message : 'Failed to fetch obstacle course',
       err
     );
   }

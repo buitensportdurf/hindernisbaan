@@ -16,7 +16,7 @@
   <DrawerPrimitive.Content
     data-slot="drawer-content"
     class={cn(
-      'fixed inset-x-0 bottom-0 z-[1650] mt-24 flex max-h-[85vh] flex-col rounded-t-2xl border-t bg-background',
+      'fixed inset-x-0 bottom-0 z-[1650] mx-auto mt-24 flex w-full max-h-[85vh] flex-col rounded-t-2xl border-t bg-background sm:max-w-md sm:border-x',
       className
     )}
     {...restProps}

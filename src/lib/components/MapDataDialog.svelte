@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { t, type Locale } from '$lib/i18n';
+  import { focusById } from '$lib/utils';
   import { Button } from '$lib/components/ui/button';
   import type { FeatureCollection } from '$lib/data/types';
   import DatabaseIcon from '@lucide/svelte/icons/database';
@@ -26,6 +28,16 @@
   } = $props();
 
   let fileInput: HTMLInputElement;
+
+  onMount(() => {
+    const previouslyFocused = document.activeElement;
+    focusById('mapdata-dialog-close');
+    return () => {
+      if (previouslyFocused instanceof HTMLElement && document.contains(previouslyFocused)) {
+        previouslyFocused.focus({ preventScroll: true });
+      }
+    };
+  });
 
   function handleDownload() {
     if (onDownload) {
@@ -75,7 +87,10 @@
     aria-labelledby="mapdata-dialog-title"
     tabindex="-1"
     onclick={(e) => e.stopPropagation()}
-    onkeydown={(e) => e.stopPropagation()}
+    onkeydown={(e) => {
+      e.stopPropagation();
+      if (e.key === 'Escape') onClose();
+    }}
   >
     <div class="flex items-start justify-between gap-3">
       <div class="flex items-center gap-2">
@@ -85,6 +100,7 @@
         </p>
       </div>
       <Button
+        id="mapdata-dialog-close"
         variant="ghost"
         size="icon"
         class="size-7 shrink-0"
