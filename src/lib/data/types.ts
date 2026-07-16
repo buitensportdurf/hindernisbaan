@@ -67,5 +67,6 @@ export interface FeatureCollection {
   type: 'FeatureCollection';
   club: string;
   version: string;
+  logo?: string;
   features: MapFeature[];
 }

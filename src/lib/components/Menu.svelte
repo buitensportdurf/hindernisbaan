@@ -101,6 +101,14 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
       bodyReady = false;
     }
   });
+
+  const clubLogo = $derived(draft?.logo ?? app.dataLogo);
+  let logoFailed = $state(false);
+
+  $effect(() => {
+    clubLogo;
+    logoFailed = false;
+  });
 </script>
 
 {#if panelMounted}
@@ -141,20 +149,30 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
               {/if}
             </Button>
 
-            <div class="flex min-h-9 min-w-0 flex-1 flex-col justify-center gap-0">
-              {#if app.menuLevel === 'root'}
-                <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
-                  {t(app.locale, 'app.title')}
-                </CardTitle>
-                <MapDataStatus {app} {onImport} {draft} />
-                {#if !draft}
-                  {@render statusExtra?.()}
-                {/if}
-              {:else}
-                <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
-                  {t(app.locale, 'settings.title')}
-                </CardTitle>
+            <div class="flex min-h-9 min-w-0 flex-1 items-center gap-2.5">
+              {#if app.menuLevel === 'root' && clubLogo && !logoFailed}
+                <img
+                  src={clubLogo}
+                  alt=""
+                  class="size-9 shrink-0 object-contain"
+                  onerror={() => (logoFailed = true)}
+                />
               {/if}
+              <div class="flex min-w-0 flex-1 flex-col justify-center gap-0">
+                {#if app.menuLevel === 'root'}
+                  <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
+                    {t(app.locale, 'app.title')}
+                  </CardTitle>
+                  <MapDataStatus {app} {onImport} {draft} />
+                  {#if !draft}
+                    {@render statusExtra?.()}
+                  {/if}
+                {:else}
+                  <CardTitle class="text-lg font-semibold leading-tight tracking-tight">
+                    {t(app.locale, 'settings.title')}
+                  </CardTitle>
+                {/if}
+              </div>
             </div>
           </header>
 

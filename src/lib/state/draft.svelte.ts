@@ -16,12 +16,19 @@ export function createDraftState() {
   let features = $state<MapFeature[]>([]);
   let club = $state('');
   let version = $state('');
+  let logo = $state<string | undefined>(undefined);
   let isValid = $state(true);
   let validationErrors = $state<string | null>(null);
   let hasStoredDraft = $state(false);
 
   function collection(): FeatureCollection {
-    return { type: 'FeatureCollection', club, version, features };
+    return {
+      type: 'FeatureCollection',
+      club,
+      version,
+      ...(logo !== undefined ? { logo } : {}),
+      features
+    };
   }
 
   function revalidateAndPersist() {
@@ -43,6 +50,7 @@ export function createDraftState() {
     get features() { return features; },
     get club() { return club; },
     get version() { return version; },
+    get logo() { return logo; },
     get isValid() { return isValid; },
     get validationErrors() { return validationErrors; },
     get hasStoredDraft() { return hasStoredDraft; },
@@ -64,6 +72,7 @@ export function createDraftState() {
           const result = validateCollection(parsed);
           club = parsed.club;
           version = parsed.version;
+          logo = parsed.logo;
           features = parsed.features;
           isValid = result.valid;
           validationErrors = result.valid ? null : result.errors;
@@ -75,6 +84,7 @@ export function createDraftState() {
       }
       club = live.club;
       version = live.version;
+      logo = live.logo;
       features = live.features;
       isValid = true;
       validationErrors = null;
@@ -103,6 +113,7 @@ export function createDraftState() {
     discard(live: FeatureCollection) {
       club = live.club;
       version = live.version;
+      logo = live.logo;
       features = live.features;
       isValid = true;
       validationErrors = null;
@@ -112,7 +123,13 @@ export function createDraftState() {
 
     exportCollection(): FeatureCollection {
       const today = new Date().toISOString().slice(0, 10);
-      return { type: 'FeatureCollection', club, version: today, features };
+      return {
+        type: 'FeatureCollection',
+        club,
+        version: today,
+        ...(logo !== undefined ? { logo } : {}),
+        features
+      };
     }
   };
 }

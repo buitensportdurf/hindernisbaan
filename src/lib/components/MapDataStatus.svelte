@@ -34,6 +34,7 @@
           type: 'FeatureCollection' as const,
           club: app.dataClub,
           version: app.dataVersion,
+          ...(app.dataLogo ? { logo: app.dataLogo } : {}),
           features: app.features
         }
       : null
@@ -45,6 +46,7 @@
           type: 'FeatureCollection' as const,
           club: draft.club,
           version: draft.version,
+          ...(draft.logo ? { logo: draft.logo } : {}),
           features: draft.features
         }
       : liveCollection

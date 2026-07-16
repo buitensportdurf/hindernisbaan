@@ -2,6 +2,7 @@
   "type": "FeatureCollection",
   "club": "Buitensport Durf",
   "version": "2026-07-15",
+  "logo": "https://www.buitensportdurf.nl/wp-content/uploads/2020/09/icon-150x150.png",
   "features": [
     {
       "type": "Feature",

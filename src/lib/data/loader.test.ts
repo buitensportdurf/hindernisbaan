@@ -101,6 +101,30 @@ describe('validateCollection', () => {
     expect(result.valid).toBe(true);
   });
 
+  it('accepts an optional .png logo URL', () => {
+    const result = validateCollection({
+      ...validCollection,
+      logo: 'https://example.com/club.png'
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts an optional .svg logo URL', () => {
+    const result = validateCollection({
+      ...validCollection,
+      logo: 'https://example.com/club.svg'
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects a logo URL with an unsupported extension', () => {
+    const result = validateCollection({
+      ...validCollection,
+      logo: 'https://example.com/club.jpg'
+    });
+    expect(result.valid).toBe(false);
+  });
+
   it('returns valid: false with an error message for a malformed collection', () => {
     const result = validateCollection({ type: 'FeatureCollection' });
     expect(result.valid).toBe(false);

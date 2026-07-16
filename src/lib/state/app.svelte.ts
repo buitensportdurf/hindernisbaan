@@ -29,6 +29,7 @@ export function createAppState() {
   let dataEpoch = $state(0);
   let dataVersion = $state<string | null>(null);
   let dataClub = $state<string | null>(null);
+  let dataLogo = $state<string | null>(null);
   let selectedId = $state<string | null>(null);
   let loadError = $state<string | null>(null);
   let loadState = $state<LoadState>('idle');
@@ -42,6 +43,7 @@ export function createAppState() {
     get dataEpoch() { return dataEpoch; },
     get dataVersion() { return dataVersion; },
     get dataClub() { return dataClub; },
+    get dataLogo() { return dataLogo; },
     get dataCount() { return features.length; },
     get selectedId() { return selectedId; },
     get loadError() { return loadError; },
@@ -72,6 +74,7 @@ export function createAppState() {
       dataEpoch += 1;
       dataVersion = col.version;
       dataClub = col.club;
+      dataLogo = col.logo ?? null;
       loadError = null;
       loadState = 'loaded';
     },
