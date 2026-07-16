@@ -262,8 +262,9 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
     <div class="relative p-3">
       <Button
         id="menu-open-button"
-        variant="outline"
+        variant="ghost"
         size="icon"
+        class="bg-background shadow-md hover:bg-accent"
         aria-label={t(app.locale, 'menu.settings')}
         onclick={() => app.toggleMenu()}
       >

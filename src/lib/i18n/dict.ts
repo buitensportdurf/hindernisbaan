@@ -24,6 +24,8 @@ export const dict = {
     'mapdata.download': 'Hindernisbaan downloaden',
     'mapdata.import': 'Andere hindernisbaan laden…',
     'mapdata.close': 'Sluiten',
+    'mapdata.copyUrl': 'Bron-URL kopiëren',
+    'mapdata.copyUrl.success': 'URL gekopieerd',
     'map.loading': 'Hindernisbaan laden…',
     'ls.title': 'localStorage vereist',
     'ls.body':
@@ -100,6 +102,8 @@ export const dict = {
     'mapdata.download': 'Download obstacle course',
     'mapdata.import': 'Load another obstacle course…',
     'mapdata.close': 'Close',
+    'mapdata.copyUrl': 'Copy source URL',
+    'mapdata.copyUrl.success': 'URL copied',
     'map.loading': 'Loading obstacle course…',
     'ls.title': 'localStorage required',
     'ls.body':

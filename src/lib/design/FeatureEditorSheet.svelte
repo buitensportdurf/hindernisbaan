@@ -99,6 +99,9 @@
     if (!value) notesOpen = false;
   }
 
+  const sectionLabel =
+    'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground';
+
   function onMemberNotesBlur(index: number, e: FocusEvent) {
     if (!feature) return;
     const value = (e.target as HTMLTextAreaElement).value.trim();
@@ -182,7 +185,7 @@
 
         {#if feature.properties.kind === 'combi'}
           <div class="flex flex-col gap-2">
-            <Label>{t(locale, 'design.editor.members')}</Label>
+            <p class={sectionLabel}>{t(locale, 'design.editor.members')}</p>
             {#each feature.properties.members as member, i (i)}
               <div class="flex flex-col gap-1.5">
                 <div class="flex items-start gap-2">
@@ -236,11 +239,8 @@
         {/if}
       </div>
 
-      <DrawerFooter class="flex-row gap-2 border-t pt-4">
-        <Button class="flex-1" onclick={onClose}>
-          {t(locale, 'design.editor.done')}
-        </Button>
-        <Button class="flex-1" variant="destructive" onclick={() => onRequestDelete(feature!.id)}>
+      <DrawerFooter class="border-t pt-4">
+        <Button class="w-full" variant="destructive" onclick={() => onRequestDelete(feature!.id)}>
           <Trash2Icon class="size-4" />
           {t(locale, 'design.editor.delete')}
         </Button>

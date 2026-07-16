@@ -4,6 +4,9 @@
   import { focusById } from '$lib/utils';
   import { Button } from '$lib/components/ui/button';
   import type { FeatureCollection } from '$lib/data/types';
+  import { toast } from 'svelte-sonner';
+  import CheckIcon from '@lucide/svelte/icons/check';
+  import CopyIcon from '@lucide/svelte/icons/copy';
   import DatabaseIcon from '@lucide/svelte/icons/database';
   import XIcon from '@lucide/svelte/icons/x';
 
@@ -28,6 +31,14 @@
   } = $props();
 
   let fileInput: HTMLInputElement;
+  let copied = $state(false);
+  let copiedTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  const resolvedSourceUrl = $derived(
+    sourceUrl && typeof window !== 'undefined'
+      ? new URL(sourceUrl, window.location.origin).href
+      : sourceUrl
+  );
 
   onMount(() => {
     const previouslyFocused = document.activeElement;
@@ -62,6 +73,21 @@
     onImport(text);
     (e.target as HTMLInputElement).value = '';
     onClose();
+  }
+
+  async function copySourceUrl() {
+    if (!resolvedSourceUrl) return;
+    try {
+      await navigator.clipboard.writeText(resolvedSourceUrl);
+      toast.success(t(locale, 'mapdata.copyUrl.success'));
+      copied = true;
+      clearTimeout(copiedTimeout);
+      copiedTimeout = setTimeout(() => {
+        copied = false;
+      }, 2000);
+    } catch {
+      // clipboard unavailable
+    }
   }
 
   function portal(node: HTMLElement) {
@@ -125,9 +151,26 @@
         <dd class="font-medium text-foreground">{data.features.length}</dd>
       </div>
       <div class="flex justify-between gap-3">
-        <dt class="text-muted-foreground">{t(locale, 'mapdata.source')}</dt>
-        <dd class="truncate font-medium text-foreground">
-          {sourceUrl ?? t(locale, 'mapdata.source.draft')}
+        <dt class="shrink-0 text-muted-foreground">{t(locale, 'mapdata.source')}</dt>
+        <dd class="flex min-w-0 items-center gap-1 font-medium text-foreground">
+          {#if resolvedSourceUrl}
+            <span class="truncate" title={resolvedSourceUrl}>{resolvedSourceUrl}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 shrink-0"
+              aria-label={t(locale, 'mapdata.copyUrl')}
+              onclick={copySourceUrl}
+            >
+              {#if copied}
+                <CheckIcon class="size-3.5" />
+              {:else}
+                <CopyIcon class="size-3.5" />
+              {/if}
+            </Button>
+          {:else}
+            <span class="truncate">{t(locale, 'mapdata.source.draft')}</span>
+          {/if}
         </dd>
       </div>
     </dl>

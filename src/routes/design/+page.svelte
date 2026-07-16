@@ -38,7 +38,7 @@
   }
 
   function closeDetails() {
-    detailsOpen = false;
+    app.selectFeature(null);
   }
 
   $effect(() => {
