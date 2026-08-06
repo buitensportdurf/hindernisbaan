@@ -50,7 +50,9 @@
             </span>
           {/if}
           <p class="text-base font-medium leading-tight">{displayName}</p>
-          <FeatureKindBadge kind={feature.properties.kind} {locale} />
+          {#if feature.properties.kind !== 'landmark'}
+            <FeatureKindBadge kind={feature.properties.kind} {locale} />
+          {/if}
         </div>
 
         {#if (feature.properties.notes ?? '').trim()}
