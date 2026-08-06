@@ -31,15 +31,11 @@ An alternative that needs no IP grants exists (DirectAdmin file-manager API with
 
 ## WordPress embed (optional, later)
 
+Keep the iframe on a single line: outside the Custom HTML block (Classic editor, some builders), `wpautop` turns line breaks into `<p>`/`<br>` and mangles multi-line tags.
+
 ```html
-<div style="width:100%;min-height:80vh;">
-  <iframe
-    src="https://www.buitensportdurf.nl/hindernisbaan/"
-    title="Hindernisbaan"
-    loading="lazy"
-    referrerpolicy="strict-origin-when-cross-origin"
-    style="width:100%;height:80vh;border:0;"
-  ></iframe>
+<div style="width:100%;">
+  <iframe src="https://www.buitensportdurf.nl/hindernisbaan/" title="Hindernisbaan" loading="lazy" allow="fullscreen; geolocation" referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:50vh;min-height:640px;border:1px solid rgba(0,0,0,0.15);border-radius:24px;display:block;"></iframe>
 </div>
 ```
 
