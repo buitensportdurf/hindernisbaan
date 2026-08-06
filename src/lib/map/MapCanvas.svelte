@@ -58,6 +58,7 @@
     let errors = 0;
     const layer = L.tileLayer(def.url, {
       maxZoom: def.maxZoom,
+      maxNativeZoom: def.maxNativeZoom ?? def.maxZoom,
       subdomains: def.subdomains ?? 'abc',
       attribution: def.attribution,
       keepBuffer: 1,

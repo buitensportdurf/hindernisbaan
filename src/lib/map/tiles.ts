@@ -5,16 +5,18 @@ export interface TileLayerDef {
   url: string;
   attribution: string;
   maxZoom: number;
+  /** Tiles beyond this zoom are upscaled client-side instead of requested. */
+  maxNativeZoom?: number;
   subdomains?: string;
 }
 
 export const TILE_LAYERS: Record<TileKey, TileLayerDef> = {
   map: {
     key: 'map',
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-    attribution: '© OpenStreetMap © CARTO',
+    url: 'https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/grijs/EPSG:3857/{z}/{x}/{y}.png',
+    attribution: '© Kadaster',
     maxZoom: 20,
-    subdomains: 'abcd'
+    maxNativeZoom: 19
   },
   sat: {
     key: 'sat',

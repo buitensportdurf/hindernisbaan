@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { TILE_LAYERS, DEFAULT_TILE, otherTile, resolveInitialTile } from './tiles';
 
 describe('TILE_LAYERS', () => {
-  it('map is CARTO Voyager with OSM+CARTO attribution', () => {
-    expect(TILE_LAYERS.map.url).toContain('basemaps.cartocdn.com/rastertiles/voyager');
-    expect(TILE_LAYERS.map.attribution).toBe('© OpenStreetMap © CARTO');
+  it('map is PDOK BRT grijs with Kadaster attribution', () => {
+    expect(TILE_LAYERS.map.url).toContain('service.pdok.nl/brt/achtergrondkaart');
+    expect(TILE_LAYERS.map.attribution).toBe('© Kadaster');
+    expect(TILE_LAYERS.map.maxNativeZoom).toBe(19);
   });
   it('sat is Esri World Imagery', () => {
     expect(TILE_LAYERS.sat.url).toContain('server.arcgisonline.com/ArcGIS/rest/services/World_Imagery');
