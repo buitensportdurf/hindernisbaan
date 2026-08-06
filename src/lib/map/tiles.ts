@@ -13,10 +13,9 @@ export interface TileLayerDef {
 export const TILE_LAYERS: Record<TileKey, TileLayerDef> = {
   map: {
     key: 'map',
-    url: 'https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/grijs/EPSG:3857/{z}/{x}/{y}.png',
-    attribution: '© Kadaster',
-    maxZoom: 20,
-    maxNativeZoom: 19
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: '© Esri',
+    maxZoom: 20
   },
   sat: {
     key: 'sat',
@@ -26,7 +25,7 @@ export const TILE_LAYERS: Record<TileKey, TileLayerDef> = {
   }
 };
 
-export const DEFAULT_TILE: TileKey = 'sat';
+export const DEFAULT_TILE: TileKey = 'map';
 export const TILE_ERROR_THRESHOLD = 10;
 
 export function otherTile(key: TileKey): TileKey {
