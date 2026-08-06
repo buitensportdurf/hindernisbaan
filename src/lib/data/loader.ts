@@ -1,3 +1,4 @@
+import { base } from '$app/paths';
 import Ajv from 'ajv';
 import schema from './obstacles.schema.json';
 import type { FeatureCollection } from './types';
@@ -29,7 +30,7 @@ function assertValid(data: unknown): asserts data is FeatureCollection {
   }
 }
 
-export const OBSTACLES_URL = '/data/obstacles.geojson';
+export const OBSTACLES_URL = `${base}/data/obstacles.geojson`;
 
 export async function fetchFeatures(
   url = OBSTACLES_URL

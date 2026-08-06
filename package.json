@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:wp": "BASE_PATH=/hindernisbaan vite build",
+    "deploy:wp": "./scripts/deploy-wordpress.sh",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",

@@ -81,12 +81,16 @@ describe('fetchFeatures', () => {
       'fetch',
       vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' })
     );
-    await expect(fetchFeatures('/data/obstacles.geojson')).rejects.toBeInstanceOf(LoadError);
+    await expect(fetchFeatures('/data/obstacles.geojson')).rejects.toBeInstanceOf(
+      LoadError
+    );
   });
 
   it('throws LoadError when fetch itself throws (network error)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
-    await expect(fetchFeatures('/data/obstacles.geojson')).rejects.toBeInstanceOf(LoadError);
+    await expect(fetchFeatures('/data/obstacles.geojson')).rejects.toBeInstanceOf(
+      LoadError
+    );
   });
 });
 

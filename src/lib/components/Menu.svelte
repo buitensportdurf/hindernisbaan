@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { t, LOCALES } from '$lib/i18n';
   import type { TileKey } from '$lib/map/tiles';
   import type { AppState } from '$lib/state/app.svelte';
@@ -75,6 +76,8 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
 
   const flushCard =
     'max-h-[78vh] w-[min(86vw,300px)] gap-0 overflow-x-hidden overflow-y-auto rounded-none rounded-br-xl border-0 py-0 shadow-[4px_4px_16px_rgba(0,0,0,0.08)] ring-0';
+  const mapHref = base ? `${base}/` : '/';
+  const designHref = `${base}/design`;
 
   let measureEl = $state<HTMLDivElement | null>(null);
   let bodyHeight = $state<number | null>(null);
@@ -182,7 +185,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
             <Button
               variant="ghost"
               class={cn(menuButton, mode === 'map' && 'bg-secondary text-secondary-foreground')}
-              href="/"
+              href={mapHref}
             >
               <MapIcon class={menuIcon} />
               <span class="flex-1 text-left">{t(app.locale, 'menu.mode.map')}</span>
@@ -190,7 +193,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
             <Button
               variant="ghost"
               class={cn(menuButton, mode === 'design' && 'bg-secondary text-secondary-foreground')}
-              href="/design"
+              href={designHref}
             >
               <PenLineIcon class={menuIcon} />
               <span class="flex-1 text-left">{t(app.locale, 'menu.mode.design')}</span>
