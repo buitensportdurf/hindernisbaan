@@ -4,7 +4,7 @@ The app deploys as static files into a subdirectory of the existing WordPress si
 
 - Live URL: `https://www.buitensportdurf.nl/hindernisbaan/`
 - Server path: `/domains/buitensportdurf.nl/public_html/hindernisbaan`
-- Host: Antagonist (DirectAdmin, `s172.webhostingserver.nl`, account `deb12352`)
+- Host: Antagonist (DirectAdmin, `s172.webhostingserver.nl`, account `deb123524`)
 
 ## Deploy method
 
