@@ -29,3 +29,7 @@ Learned during implementation: DirectAdmin file-manager POSTs require a session 
 ## Verification
 
 Live checks after deploy: app shell at `/hindernisbaan/`, SPA fallback at `/hindernisbaan/design`, GeoJSON at `/hindernisbaan/data/obstacles.geojson`, and WordPress still serving normally at `/`.
+
+## Addendum (same day): superseded transport decision
+
+After the da-api route shipped, SSH turned out to be feasible after all — the July failure traced to a wrong username (`deb12352` vs `deb123524`) and Antagonist's short default grant expiry (1 week), not to SSH being unavailable. A key + IP grant with 1-year expiry via DirectAdmin's SSH menu works. Since rsync `--delete` also prunes removed files, **ssh/rsync became the only deploy method** and the da-api mode (plus its login key) was removed for simplicity. The da-api learnings above remain valid if it's ever revived; the working implementation is in git history at `d7c65d2`.
