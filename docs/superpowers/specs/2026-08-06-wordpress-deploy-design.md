@@ -24,7 +24,7 @@ Serve the built app at `https://www.buitensportdurf.nl/hindernisbaan/` as static
 
 ## Error handling
 
-DirectAdmin returns HTTP 200 with an HTML error page on failure; the script greps responses for error markers and aborts with the response body shown. Extraction overwrites but does not prune deleted files — acceptable because asset filenames are hashed; occasional manual clean via the DA file manager.
+Learned during implementation: DirectAdmin file-manager POSTs require a session (login key must have the Allow Login/HTM flag; `POST /api/login` first), and successful POSTs often return a bogus HTTP 500. The script therefore ignores POST statuses and verifies each step through directory listings (zip present after upload, `index.html` present after extract), failing loudly if verification misses. Extraction overwrites but does not prune deleted files — acceptable because asset filenames are hashed; occasional manual clean via the DA file manager. An `.htaccess` shipped via `static/` provides the Apache SPA fallback for deep links.
 
 ## Verification
 

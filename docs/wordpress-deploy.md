@@ -15,7 +15,16 @@ Why not the alternatives:
 - **SSH/rsync**: Antagonist firewalls port 22 until SSH is enabled *and* your current IP is whitelisted in DirectAdmin; deploys break whenever your IP changes.
 - **FTPES**: works, but requires storing the full account password locally.
 
-The login key is created in DirectAdmin under **Advanced Features → Login Keys** (`https://buitensportdurf.nl:2222/evo/login-keys`), restricted to file manager commands (`CMD_FILE_MANAGER`). It can be revoked at any time without affecting the account password.
+The login key is created in DirectAdmin under **Advanced Features → Login Keys** (`https://buitensportdurf.nl:2222/evo/login-keys`), restricted to file manager commands (`CMD_FILE_MANAGER` + `CMD_API_FILE_MANAGER`). It can be revoked at any time without affecting the account password. Current key: `hindernisbaandeploy`, expires 2027-08-06.
+
+Two DirectAdmin quirks the script accounts for:
+
+- File-manager **POSTs require a session** (`POST /api/login` with the key), not basic auth — so the key must have **Allow Login (HTM)** enabled. Basic auth still works for GET/listing.
+- Successful file-manager POSTs often return a **bogus HTTP 500** while the operation succeeds. The script ignores statuses and verifies results via directory listings instead.
+
+Beware: a few failed auth attempts in a row trigger a temporary brute-force lockout (all API calls return 401 "Not logged in" for a few minutes). Wait it out rather than retrying.
+
+The subfolder ships its own `.htaccess` (from `static/`) providing the SPA fallback, so deep links like `/design` work.
 
 ## Setup
 

@@ -1,0 +1,9 @@
+# SPA fallback for the /hindernisbaan subfolder deploy (Apache).
+# Unknown paths (e.g. /design) serve the SvelteKit fallback page so the
+# client-side router can take over. Real files are served directly.
+DirectoryIndex index.html
+Options -MultiViews
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . index.html [L]

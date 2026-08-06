@@ -12,7 +12,6 @@ if [[ -f ".env.deploy.local" ]]; then
   set +a
 fi
 
-: "${DEPLOY_HOST:?Set DEPLOY_HOST in your shell or .env.deploy.local}"
 : "${DEPLOY_USER:?Set DEPLOY_USER in your shell or .env.deploy.local}"
 : "${DEPLOY_PATH:?Set DEPLOY_PATH in your shell or .env.deploy.local}"
 
@@ -31,6 +30,7 @@ if [[ ! -d "build" ]]; then
 fi
 
 deploy_ssh() {
+  : "${DEPLOY_HOST:?Set DEPLOY_HOST in .env.deploy.local for SSH}"
   local port="${DEPLOY_PORT:-22}"
   local target="${DEPLOY_TARGET:-$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH}"
 
@@ -48,6 +48,7 @@ deploy_ftp() {
     exit 1
   fi
 
+  : "${DEPLOY_HOST:?Set DEPLOY_HOST in .env.deploy.local for FTP}"
   : "${DEPLOY_PASSWORD:?Set DEPLOY_PASSWORD in .env.deploy.local for FTP}"
 
   local port="${DEPLOY_PORT:-21}"
@@ -78,59 +79,79 @@ deploy_da_api() {
     exit 1
   fi
 
-  local parent name zipfile response
+  local parent name workdir zipfile cookies
   parent="$(dirname "$DEPLOY_PATH")"
   name="$(basename "$DEPLOY_PATH")"
-  zipfile="$(mktemp -d)/deploy.zip"
+  workdir="$(mktemp -d)"
+  zipfile="$workdir/deploy.zip"
+  cookies="$workdir/cookies.txt"
+  # shellcheck disable=SC2064  -- expand now; workdir is local and gone at EXIT
+  trap "rm -rf '$workdir'" EXIT
 
   echo "Zipping build/ ..."
   (cd build && zip -qr "$zipfile" .)
 
-  da() {
-    curl -sS --fail-with-body -u "$DEPLOY_USER:$DEPLOY_DA_LOGIN_KEY" "$@"
+  # Uploads and other POSTs are only accepted with a session, not basic auth
+  # (basic-auth POSTs 302 to the login page without doing anything). The login
+  # key needs the "Allow Login" (HTM) flag for session creation to work.
+  echo "Logging in to DirectAdmin ..."
+  local login_status
+  login_status="$(curl -sS -o /dev/null -w '%{http_code}' -c "$cookies" \
+    -X POST "$DEPLOY_DA_URL/api/login" \
+    -H 'Content-Type: application/json' \
+    -d "{\"username\":\"$DEPLOY_USER\",\"password\":\"$DEPLOY_DA_LOGIN_KEY\"}")"
+  if [[ "$login_status" != "200" ]]; then
+    echo "DirectAdmin login failed (HTTP $login_status). Check DEPLOY_USER/DEPLOY_DA_LOGIN_KEY."
+    exit 1
+  fi
+
+  # Note: this DirectAdmin build often answers successful file-manager POSTs
+  # with a bogus HTTP 500 while the operation succeeds server-side. Statuses
+  # are therefore ignored; the directory listing below is the real check.
+  da_post() {
+    curl -sS -o /dev/null -b "$cookies" -H "Referer: $DEPLOY_DA_URL/CMD_FILE_MANAGER" \
+      -X POST "$DEPLOY_DA_URL/CMD_FILE_MANAGER" "$@" || true
   }
 
-  # DA returns HTTP 200 with an HTML error page on failure; detect via error markers.
-  da_check() {
-    if printf '%s' "$response" | grep -qiE 'error=1|"error":1|<title>[^<]*Error'; then
-      printf '%s\n' "$response" | head -40
-      echo "DirectAdmin API reported an error (see output above)."
-      exit 1
-    fi
+  da_has_file() {
+    curl -sS -b "$cookies" "$DEPLOY_DA_URL/CMD_FILE_MANAGER?path=$DEPLOY_PATH&json=yes" \
+      | grep -q "\"$DEPLOY_PATH/$1\""
   }
 
   echo "Ensuring remote directory $DEPLOY_PATH exists ..."
-  response="$(da -X POST "$DEPLOY_DA_URL/CMD_FILE_MANAGER" \
-    --data-urlencode "action=folder" \
+  da_post --data-urlencode "action=folder" \
     --data-urlencode "path=$parent" \
-    --data-urlencode "name=$name" || true)"
-  # An "already exists" error is fine here; anything else surfaces on upload.
+    --data-urlencode "name=$name"
 
-  echo "Uploading build zip via DirectAdmin API ..."
-  response="$(da -X POST "$DEPLOY_DA_URL/CMD_FILE_MANAGER" \
+  echo "Uploading build zip ..."
+  # MAX_FILE_SIZE is required; uploads fail without it.
+  da_post -F "MAX_FILE_SIZE=1048576000" \
     -F "action=upload" \
     -F "path=$DEPLOY_PATH" \
-    -F "file1=@$zipfile;filename=deploy.zip")"
-  da_check
+    -F "file1=@$zipfile;filename=deploy.zip"
+
+  if ! da_has_file "deploy.zip"; then
+    echo "deploy.zip did not arrive in $DEPLOY_PATH; upload failed."
+    exit 1
+  fi
 
   echo "Extracting on server ..."
-  response="$(da -X POST "$DEPLOY_DA_URL/CMD_FILE_MANAGER" \
-    --data-urlencode "action=extract" \
+  da_post --data-urlencode "action=extract" \
     --data-urlencode "page=2" \
     --data-urlencode "path=$DEPLOY_PATH/deploy.zip" \
-    --data-urlencode "directory=$DEPLOY_PATH")"
-  da_check
+    --data-urlencode "directory=$DEPLOY_PATH"
+
+  if ! da_has_file "index.html"; then
+    echo "index.html not found in $DEPLOY_PATH after extract; deploy failed."
+    exit 1
+  fi
 
   echo "Removing uploaded zip ..."
-  response="$(da -X POST "$DEPLOY_DA_URL/CMD_FILE_MANAGER" \
-    --data-urlencode "action=multiple" \
+  da_post --data-urlencode "action=multiple" \
     --data-urlencode "button=delete" \
     --data-urlencode "path=$DEPLOY_PATH" \
     --data-urlencode "select0=$DEPLOY_PATH/deploy.zip" \
-    --data-urlencode "trash=no")"
-  da_check
-
-  rm -f "$zipfile"
+    --data-urlencode "trash=no"
 }
 
 case "$DEPLOY_METHOD" in
