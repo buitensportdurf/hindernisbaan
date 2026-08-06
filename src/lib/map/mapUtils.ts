@@ -40,9 +40,25 @@ function retriggerTooltipAnimation(container: HTMLElement): void {
   container.style.animation = '';
 }
 
-const LABEL_CULL_PAD = 4;
+const LABEL_GAP = 4;
+const LABEL_EDGE_GAP = 6;
+/** Candidate directions in degrees off straight-up: up first, fanning out both sides, down last. */
+const LABEL_ANGLE_OFFSETS = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180];
 
-/** Rough feature footprint (degrees²) — only used to rank same-tier labels, bigger wins. */
+type LabelEntry = { layer: L.Layer; tier: number };
+type LabelState = { entries: Set<LabelEntry>; raf?: number; hooked?: boolean };
+const labelStates = new WeakMap<L.Map, LabelState>();
+
+function labelState(map: L.Map): LabelState {
+  let state = labelStates.get(map);
+  if (!state) {
+    state = { entries: new Set() };
+    labelStates.set(map, state);
+  }
+  return state;
+}
+
+/** Rough feature footprint (degrees²) — ranks same-tier labels, bigger feature wins space first. */
 function labelFootprint(layer: L.Layer): number {
   if ('getBounds' in layer && typeof layer.getBounds === 'function') {
     const b = (layer as L.Polyline).getBounds();
@@ -51,50 +67,123 @@ function labelFootprint(layer: L.Layer): number {
   return 0;
 }
 
-/**
- * Greedy label deconfliction: walk open labels by priority (tier, then feature
- * size) and hide any whose bubble overlaps an already-placed one. Hidden labels
- * come back automatically on the next pass when space frees up.
- */
-function cullOverlappingLabels(map: L.Map): void {
-  const pane = map.getPane('tooltipPane');
-  if (!pane) return;
-  const labels = [...pane.querySelectorAll<HTMLElement>('.leaflet-tooltip')]
-    .map((el) => ({
-      el,
-      tier: Number(el.dataset.labelTier ?? Infinity),
-      size: Number(el.dataset.labelSize ?? 0),
-      bubble: el.querySelector<HTMLElement>('.tooltip-bubble')
-    }))
-    .filter((label) => label.bubble);
-  labels.sort((a, b) => (b.tier - a.tier) || (b.size - a.size));
+/** Feature's screen box as center + half-extents in map container coordinates. */
+function featureScreenBox(
+  map: L.Map,
+  layer: L.Layer
+): { cx: number; cy: number; hw: number; hh: number } | null {
+  if ('getBounds' in layer && typeof layer.getBounds === 'function') {
+    const b = (layer as L.Polyline).getBounds();
+    if (b.isValid()) {
+      const p1 = map.latLngToContainerPoint(b.getNorthWest());
+      const p2 = map.latLngToContainerPoint(b.getSouthEast());
+      return {
+        cx: (p1.x + p2.x) / 2,
+        cy: (p1.y + p2.y) / 2,
+        hw: Math.abs(p2.x - p1.x) / 2,
+        hh: Math.abs(p2.y - p1.y) / 2
+      };
+    }
+  }
+  if ('getLatLng' in layer && typeof layer.getLatLng === 'function') {
+    const p = map.latLngToContainerPoint((layer as L.Marker).getLatLng());
+    return { cx: p.x, cy: p.y, hw: 8, hh: 8 };
+  }
+  return null;
+}
 
-  const placed: DOMRect[] = [];
-  for (const label of labels) {
-    const r = label.bubble!.getBoundingClientRect();
-    const overlaps = placed.some(
-      (p) =>
-        r.left < p.right + LABEL_CULL_PAD &&
-        r.right > p.left - LABEL_CULL_PAD &&
-        r.top < p.bottom + LABEL_CULL_PAD &&
-        r.bottom > p.top - LABEL_CULL_PAD
-    );
-    label.el.classList.toggle('tooltip-culled', overlaps);
-    if (!overlaps) placed.push(r);
+type ScreenRect = { l: number; t: number; r: number; b: number };
+
+function rectOverlapArea(a: ScreenRect, b: ScreenRect): number {
+  const w = Math.min(a.r, b.r) - Math.max(a.l, b.l);
+  const h = Math.min(a.b, b.b) - Math.max(a.t, b.t);
+  return w > 0 && h > 0 ? w * h : 0;
+}
+
+/**
+ * Greedy radial label placement: labels are walked by priority (tier, then
+ * feature size); each tries candidate spots on an ellipse hugging its feature —
+ * straight-up first, sweeping around to straight-down. Overlapping another
+ * label is forbidden; overlapping other features' geometry is penalized by
+ * covered area, so a label takes a clean spot when one exists but still places
+ * when boxed in (e.g. an obstacle inside a combi). Only a label whose whole
+ * ring collides with other labels is hidden.
+ */
+function placeLabels(map: L.Map): void {
+  const state = labelStates.get(map);
+  if (!state || state.entries.size === 0) return;
+
+  // Screen footprints of every feature on the map — labels try not to cover them.
+  const featureRects: { id: string; rect: ScreenRect }[] = [];
+  map.eachLayer((l) => {
+    const feature = (l as L.Layer & { feature?: { id: string } }).feature;
+    if (!feature) return;
+    const box = featureScreenBox(map, l);
+    if (box) {
+      featureRects.push({
+        id: feature.id,
+        rect: { l: box.cx - box.hw, t: box.cy - box.hh, r: box.cx + box.hw, b: box.cy + box.hh }
+      });
+    }
+  });
+
+  const items = [...state.entries]
+    .map((entry) => {
+      const tooltip = (entry.layer as L.Layer & { getTooltip: () => L.Tooltip | undefined }).getTooltip();
+      const el = tooltip?.getElement();
+      const bubble = el?.querySelector<HTMLElement>('.tooltip-bubble');
+      const box = featureScreenBox(map, entry.layer);
+      const featureId = (entry.layer as L.Layer & { feature?: { id: string } }).feature?.id;
+      if (!tooltip || !el || !bubble || !box) return null;
+      return { tooltip, el, box, featureId, tier: entry.tier, size: labelFootprint(entry.layer), bubble };
+    })
+    .filter((item) => item !== null);
+  items.sort((a, b) => (b.tier - a.tier) || (b.size - a.size));
+
+  const placed: ScreenRect[] = [];
+  for (const item of items) {
+    const { width: w, height: h } = item.bubble.getBoundingClientRect();
+    let best: { x: number; y: number; rect: ScreenRect; penalty: number } | null = null;
+    for (const deg of LABEL_ANGLE_OFFSETS) {
+      const a = ((90 - deg) * Math.PI) / 180;
+      const x = item.box.cx + (item.box.hw + w / 2 + LABEL_EDGE_GAP) * Math.cos(a);
+      const y = item.box.cy - (item.box.hh + h / 2 + LABEL_EDGE_GAP) * Math.sin(a);
+      const rect: ScreenRect = { l: x - w / 2, t: y - h / 2, r: x + w / 2, b: y + h / 2 };
+      const collides = placed.some(
+        (p) =>
+          rect.l < p.r + LABEL_GAP &&
+          rect.r > p.l - LABEL_GAP &&
+          rect.t < p.b + LABEL_GAP &&
+          rect.b > p.t - LABEL_GAP
+      );
+      if (collides) continue;
+      let penalty = 0;
+      for (const f of featureRects) {
+        if (f.id === item.featureId) continue;
+        penalty += rectOverlapArea(rect, f.rect);
+      }
+      if (!best || penalty < best.penalty - 0.5) best = { x, y, rect, penalty };
+      if (best.penalty === 0) break;
+    }
+    item.el.classList.toggle('tooltip-culled', !best);
+    if (best) {
+      placed.push(best.rect);
+      item.tooltip.setLatLng(map.containerPointToLatLng(L.point(best.x, best.y)));
+    }
   }
 }
 
-/** rAF-debounced: many tooltips open in the same tick when a zoom threshold is crossed. */
-function scheduleLabelCull(map: L.Map): void {
-  const m = map as L.Map & { _labelCullRaf?: number; _labelCullHooked?: boolean };
-  if (!m._labelCullHooked) {
-    m._labelCullHooked = true;
-    m.on('zoomend', () => scheduleLabelCull(m));
+/** rAF-debounced: many labels open in the same tick when a zoom threshold is crossed. */
+function scheduleLabelPlacement(map: L.Map): void {
+  const state = labelState(map);
+  if (!state.hooked) {
+    state.hooked = true;
+    map.on('zoomend', () => scheduleLabelPlacement(map));
   }
-  if (m._labelCullRaf !== undefined) return;
-  m._labelCullRaf = requestAnimationFrame(() => {
-    m._labelCullRaf = undefined;
-    cullOverlappingLabels(m);
+  if (state.raf !== undefined) return;
+  state.raf = requestAnimationFrame(() => {
+    state.raf = undefined;
+    placeLabels(map);
   });
 }
 
@@ -119,36 +208,51 @@ function tooltipAnchor(layer: L.Layer): L.LatLng {
  * Binds a Leaflet tooltip showing the filled path feature name.
  * Hover-only by default; with `permanentAtZoom` set, the tooltip becomes an
  * always-visible label once the map zoom reaches that level. `labelTier` ranks
- * permanent labels for overlap culling — higher tiers win space.
+ * labels for radial placement — higher tiers claim their spot first.
  */
 export function bindFilledPathTooltip(
   layer: L.Layer,
   text: string,
   permanentAtZoom?: number,
-  labelTier?: number
+  labelTier = 0
 ): void {
   const name = text.trim();
   if (!name) return;
-  const html = `<span class="tooltip-bubble">${escapeHtml(name)}</span>`;
+  const bubbleClass = labelTier > 0 ? 'tooltip-bubble tooltip-bubble--strong' : 'tooltip-bubble';
+  const html = `<span class="${bubbleClass}">${escapeHtml(name)}</span>`;
+  const entry: LabelEntry = { layer, tier: labelTier };
+
+  const getMap = () => (layer as L.Layer & { _map?: L.Map })._map;
 
   layer.on('tooltipopen', () => {
     const tooltip = layer.getTooltip();
-    tooltip?.setLatLng(tooltipAnchor(layer));
-    const el = tooltip?.getElement();
-    if (!el) return;
-    retriggerTooltipAnimation(el);
-    const map = (layer as L.Layer & { _map?: L.Map })._map;
-    if (labelTier !== undefined && tooltip?.options.permanent && map) {
-      el.dataset.labelTier = String(labelTier);
-      el.dataset.labelSize = String(labelFootprint(layer));
-      scheduleLabelCull(map);
+    if (!tooltip) return;
+    tooltip.setLatLng(tooltipAnchor(layer));
+    const el = tooltip.getElement();
+    if (el) retriggerTooltipAnimation(el);
+    const map = getMap();
+    if (tooltip.options.permanent && map) {
+      labelState(map).entries.add(entry);
+      scheduleLabelPlacement(map);
     }
+  });
+
+  layer.on('tooltipclose', () => {
+    const map = getMap();
+    if (!map) return;
+    labelState(map).entries.delete(entry);
+    scheduleLabelPlacement(map);
   });
 
   let permanent = false;
   const bind = () => {
     layer.unbindTooltip();
-    layer.bindTooltip(html, { ...FILLED_PATH_TOOLTIP_OPTS, permanent });
+    layer.bindTooltip(
+      html,
+      permanent
+        ? { ...FILLED_PATH_TOOLTIP_OPTS, permanent: true, direction: 'center', offset: [0, 0] }
+        : { ...FILLED_PATH_TOOLTIP_OPTS, permanent: false }
+    );
   };
   bind();
 
@@ -171,6 +275,7 @@ export function bindFilledPathTooltip(
   layer.on('add', watchZoom);
   layer.on('remove', () => {
     zoomedMap?.off('zoomend', sync);
+    if (zoomedMap) labelState(zoomedMap).entries.delete(entry);
     zoomedMap = undefined;
   });
   // Both call sites add the layer to the map before binding, so 'add' already fired.

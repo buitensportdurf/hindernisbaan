@@ -12,6 +12,8 @@ import type {
 
 export type MenuLevel = 'root' | 'settings';
 export type LoadState = 'idle' | 'loading' | 'error' | 'loaded';
+/** 'zoom' — name labels appear automatically at high zoom; 'tap' — only on hover/tap. */
+export type LabelsMode = 'zoom' | 'tap';
 
 export function createAppState() {
   let locale = $state<Locale>(
@@ -21,6 +23,7 @@ export function createAppState() {
     )
   );
   let tile = $state<TileKey>(resolveInitialTile(readKey('durf:tile')));
+  let labels = $state<LabelsMode>(readKey('durf:labels') === 'tap' ? 'tap' : 'zoom');
   let menuOpen = $state(false);
   let menuLevel = $state<MenuLevel>('root');
 
@@ -37,6 +40,7 @@ export function createAppState() {
   return {
     get locale() { return locale; },
     get tile() { return tile; },
+    get labels() { return labels; },
     get menuOpen() { return menuOpen; },
     get menuLevel() { return menuLevel; },
     get features() { return features; },
@@ -60,6 +64,7 @@ export function createAppState() {
 
     setLocale(l: Locale) { locale = l; writeKey(LANG_KEY, l); },
     setTile(k: TileKey) { tile = k; writeKey('durf:tile', k); menuOpen = false; },
+    setLabels(m: LabelsMode) { labels = m; writeKey('durf:labels', m); },
     failoverTile(k: TileKey) { tile = k; },
     toggleMenu() {
       if (!menuOpen) { menuOpen = true; menuLevel = 'root'; }

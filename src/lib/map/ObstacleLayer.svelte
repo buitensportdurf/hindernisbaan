@@ -10,13 +10,15 @@
     selectedId,
     onSelect,
     onOpenDetails,
-    gesturesEnabled
+    gesturesEnabled,
+    labelsEnabled = true
   }: {
     features: ObstacleFeature[];
     selectedId: string | null;
     onSelect: (id: string) => void;
     onOpenDetails?: (id: string) => void;
     gesturesEnabled?: () => boolean;
+    labelsEnabled?: boolean;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
@@ -38,7 +40,7 @@
         enabled: gesturesEnabled
       });
       group.addLayer(layer);
-      bindFilledPathTooltip(layer, f.properties.name, OBSTACLE_LABEL_ZOOM, 0);
+      bindFilledPathTooltip(layer, f.properties.name, labelsEnabled ? OBSTACLE_LABEL_ZOOM : undefined);
     }
 
     for (const f of features) {

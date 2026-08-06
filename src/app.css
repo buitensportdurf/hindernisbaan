@@ -35,6 +35,16 @@ html, body { margin: 0; height: 100%; }
   @apply tooltip-surface tooltip-animate-in inline-block;
 }
 
+/* Combi labels: one step up in size and weight so they read above obstacle labels. */
+.leaflet-tooltip .tooltip-bubble--strong {
+  @apply text-sm font-medium;
+}
+
+/* Obstacle labels: slightly muted text keeps them a step below combi labels. */
+.leaflet-tooltip .tooltip-bubble:not(.tooltip-bubble--strong) {
+  @apply text-background/80;
+}
+
 .leaflet-tooltip-top .tooltip-bubble { @apply tooltip-from-top; }
 .leaflet-tooltip-bottom .tooltip-bubble { @apply tooltip-from-bottom; }
 .leaflet-tooltip-left .tooltip-bubble { @apply tooltip-from-left; }
@@ -48,6 +58,11 @@ html, body { margin: 0; height: 100%; }
 
 @keyframes tooltip-map-enter {
   from { opacity: 0; }
+}
+
+/* Label found no free spot on its placement ring — hidden until space frees up. */
+.leaflet-tooltip.tooltip-culled {
+  visibility: hidden;
 }
 
 .leaflet-tooltip-top:before,

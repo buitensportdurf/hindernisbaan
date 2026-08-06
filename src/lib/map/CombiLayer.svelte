@@ -10,13 +10,15 @@
     selectedId,
     onSelect,
     onOpenDetails,
-    gesturesEnabled
+    gesturesEnabled,
+    labelsEnabled = true
   }: {
     features: CombiFeature[];
     selectedId: string | null;
     onSelect: (id: string) => void;
     onOpenDetails?: (id: string) => void;
     gesturesEnabled?: () => boolean;
+    labelsEnabled?: boolean;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
@@ -130,7 +132,7 @@
         enabled: gesturesEnabled
       });
       group.addLayer(rectangle);
-      bindFilledPathTooltip(rectangle, f.properties.name, COMBI_LABEL_ZOOM, 1);
+      bindFilledPathTooltip(rectangle, f.properties.name, labelsEnabled ? COMBI_LABEL_ZOOM : undefined, 1);
 
       if (countMarker) {
         group.addLayer(countMarker);

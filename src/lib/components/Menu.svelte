@@ -4,6 +4,8 @@
   import type { TileKey } from '$lib/map/tiles';
   import type { AppState } from '$lib/state/app.svelte';
   import { Button } from '$lib/components/ui/button';
+  import { Label } from '$lib/components/ui/label';
+  import { Switch } from '$lib/components/ui/switch';
   import { cn, focusById } from '$lib/utils';
   import { Card, CardTitle } from '$lib/components/ui/card';
   import MapDataStatus from './MapDataStatus.svelte';
@@ -261,6 +263,23 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
                   {l}
                 </Button>
               {/each}
+            </div>
+          </section>
+
+          <section class="flex flex-col gap-2">
+            <p class={sectionLabel}>
+              <SettingsIcon class="size-3" />
+              {t(app.locale, 'settings.interaction')}
+            </p>
+            <div class="flex items-center justify-between gap-3 px-1">
+              <Label for="labels-zoom-switch" class="font-normal">
+                {t(app.locale, 'settings.labels.zoomReveal')}
+              </Label>
+              <Switch
+                id="labels-zoom-switch"
+                checked={app.labels === 'zoom'}
+                onCheckedChange={(v: boolean) => app.setLabels(v ? 'zoom' : 'tap')}
+              />
             </div>
           </section>
 

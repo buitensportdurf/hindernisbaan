@@ -117,11 +117,13 @@
         features={app.obstacles}
         selectedId={app.selectedId}
         onSelect={(id) => app.selectFeature(id)}
+        labelsEnabled={app.labels === 'zoom'}
       />
       <CombiLayer
         features={app.combis}
         selectedId={app.selectedId}
         onSelect={(id) => app.selectFeature(id)}
+        labelsEnabled={app.labels === 'zoom'}
       />
       <LandmarkLayer
         features={app.landmarks}

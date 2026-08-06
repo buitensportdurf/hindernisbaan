@@ -218,6 +218,7 @@
       onSelect={handleSelect}
       onOpenDetails={handleOpenDetails}
       {gesturesEnabled}
+      labelsEnabled={app.labels === 'zoom'}
     />
     <CombiLayer
       features={draft.combis}
@@ -225,6 +226,7 @@
       onSelect={handleSelect}
       onOpenDetails={handleOpenDetails}
       {gesturesEnabled}
+      labelsEnabled={app.labels === 'zoom'}
     />
     <LandmarkLayer
       features={draft.landmarks}
