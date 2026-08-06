@@ -66,12 +66,10 @@
         {#if feature.properties.kind === 'combi' && feature.properties.members.length > 0}
           <div class="flex flex-col gap-1.5">
             <p class={sectionLabel}>{t(locale, 'map.sheet.obstacles')}</p>
-            <ul class="flex flex-col">
+            <ul class="list-disc pl-5 marker:text-muted-foreground/60">
               {#each feature.properties.members as member, i (i)}
-                <li class="flex flex-col">
-                  <p class="text-sm text-muted-foreground">
-                    {member.name.trim() || t(locale, 'design.editor.members.name')}
-                  </p>
+                <li class="text-sm text-muted-foreground">
+                  {member.name.trim() || t(locale, 'design.editor.members.name')}
                   {#if (member.notes ?? '').trim()}
                     <p class="whitespace-pre-wrap text-xs text-muted-foreground/80">{member.notes}</p>
                   {/if}
