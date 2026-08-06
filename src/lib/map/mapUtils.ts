@@ -14,6 +14,11 @@ const FILLED_PATH_TOOLTIP_OPTS: L.TooltipOptions = {
   opacity: 1
 };
 
+/** Combi zone labels switch from hover-only to always-visible at this zoom. */
+export const COMBI_LABEL_ZOOM = 18;
+/** Obstacle labels join one zoom step further in. */
+export const OBSTACLE_LABEL_ZOOM = 19;
+
 function escapeHtml(text: string): string {
   return text
     .replaceAll('&', '&amp;')
@@ -35,6 +40,64 @@ function retriggerTooltipAnimation(container: HTMLElement): void {
   container.style.animation = '';
 }
 
+const LABEL_CULL_PAD = 4;
+
+/** Rough feature footprint (degrees²) — only used to rank same-tier labels, bigger wins. */
+function labelFootprint(layer: L.Layer): number {
+  if ('getBounds' in layer && typeof layer.getBounds === 'function') {
+    const b = (layer as L.Polyline).getBounds();
+    if (b.isValid()) return (b.getEast() - b.getWest()) * (b.getNorth() - b.getSouth());
+  }
+  return 0;
+}
+
+/**
+ * Greedy label deconfliction: walk open labels by priority (tier, then feature
+ * size) and hide any whose bubble overlaps an already-placed one. Hidden labels
+ * come back automatically on the next pass when space frees up.
+ */
+function cullOverlappingLabels(map: L.Map): void {
+  const pane = map.getPane('tooltipPane');
+  if (!pane) return;
+  const labels = [...pane.querySelectorAll<HTMLElement>('.leaflet-tooltip')]
+    .map((el) => ({
+      el,
+      tier: Number(el.dataset.labelTier ?? Infinity),
+      size: Number(el.dataset.labelSize ?? 0),
+      bubble: el.querySelector<HTMLElement>('.tooltip-bubble')
+    }))
+    .filter((label) => label.bubble);
+  labels.sort((a, b) => (b.tier - a.tier) || (b.size - a.size));
+
+  const placed: DOMRect[] = [];
+  for (const label of labels) {
+    const r = label.bubble!.getBoundingClientRect();
+    const overlaps = placed.some(
+      (p) =>
+        r.left < p.right + LABEL_CULL_PAD &&
+        r.right > p.left - LABEL_CULL_PAD &&
+        r.top < p.bottom + LABEL_CULL_PAD &&
+        r.bottom > p.top - LABEL_CULL_PAD
+    );
+    label.el.classList.toggle('tooltip-culled', overlaps);
+    if (!overlaps) placed.push(r);
+  }
+}
+
+/** rAF-debounced: many tooltips open in the same tick when a zoom threshold is crossed. */
+function scheduleLabelCull(map: L.Map): void {
+  const m = map as L.Map & { _labelCullRaf?: number; _labelCullHooked?: boolean };
+  if (!m._labelCullHooked) {
+    m._labelCullHooked = true;
+    m.on('zoomend', () => scheduleLabelCull(m));
+  }
+  if (m._labelCullRaf !== undefined) return;
+  m._labelCullRaf = requestAnimationFrame(() => {
+    m._labelCullRaf = undefined;
+    cullOverlappingLabels(m);
+  });
+}
+
 /** Top-center of a layer's bounds — tooltip sits above the feature, not its centroid. */
 function tooltipAnchor(layer: L.Layer): L.LatLng {
   if ('getBounds' in layer && typeof layer.getBounds === 'function') {
@@ -52,17 +115,66 @@ function tooltipAnchor(layer: L.Layer): L.LatLng {
   return L.latLng(0, 0);
 }
 
-/** Binds a Leaflet hover tooltip showing the filled path feature name. */
-export function bindFilledPathTooltip(layer: L.Layer, text: string): void {
+/**
+ * Binds a Leaflet tooltip showing the filled path feature name.
+ * Hover-only by default; with `permanentAtZoom` set, the tooltip becomes an
+ * always-visible label once the map zoom reaches that level. `labelTier` ranks
+ * permanent labels for overlap culling — higher tiers win space.
+ */
+export function bindFilledPathTooltip(
+  layer: L.Layer,
+  text: string,
+  permanentAtZoom?: number,
+  labelTier?: number
+): void {
   const name = text.trim();
   if (!name) return;
-  layer.bindTooltip(`<span class="tooltip-bubble">${escapeHtml(name)}</span>`, FILLED_PATH_TOOLTIP_OPTS);
+  const html = `<span class="tooltip-bubble">${escapeHtml(name)}</span>`;
+
   layer.on('tooltipopen', () => {
     const tooltip = layer.getTooltip();
     tooltip?.setLatLng(tooltipAnchor(layer));
     const el = tooltip?.getElement();
-    if (el) retriggerTooltipAnimation(el);
+    if (!el) return;
+    retriggerTooltipAnimation(el);
+    const map = (layer as L.Layer & { _map?: L.Map })._map;
+    if (labelTier !== undefined && tooltip?.options.permanent && map) {
+      el.dataset.labelTier = String(labelTier);
+      el.dataset.labelSize = String(labelFootprint(layer));
+      scheduleLabelCull(map);
+    }
   });
+
+  let permanent = false;
+  const bind = () => {
+    layer.unbindTooltip();
+    layer.bindTooltip(html, { ...FILLED_PATH_TOOLTIP_OPTS, permanent });
+  };
+  bind();
+
+  if (permanentAtZoom === undefined) return;
+
+  let zoomedMap: L.Map | undefined;
+  const sync = () => {
+    if (!zoomedMap) return;
+    const next = zoomedMap.getZoom() >= permanentAtZoom;
+    if (next !== permanent) {
+      permanent = next;
+      bind();
+    }
+  };
+  const watchZoom = () => {
+    zoomedMap = (layer as L.Layer & { _map?: L.Map })._map;
+    zoomedMap?.on('zoomend', sync);
+    sync();
+  };
+  layer.on('add', watchZoom);
+  layer.on('remove', () => {
+    zoomedMap?.off('zoomend', sync);
+    zoomedMap = undefined;
+  });
+  // Both call sites add the layer to the map before binding, so 'add' already fired.
+  if ((layer as L.Layer & { _map?: L.Map })._map) watchZoom();
 }
 
 const DOUBLE_TAP_MS = 350;

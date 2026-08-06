@@ -13,14 +13,14 @@ describe('TILE_LAYERS', () => {
 });
 
 describe('failover + defaults', () => {
-  it('default is map', () => { expect(DEFAULT_TILE).toBe('map'); });
+  it('default is sat', () => { expect(DEFAULT_TILE).toBe('sat'); });
   it('otherTile swaps', () => {
     expect(otherTile('map')).toBe('sat');
     expect(otherTile('sat')).toBe('map');
   });
   it('resolveInitialTile honours a valid stored key, else default', () => {
-    expect(resolveInitialTile('sat')).toBe('sat');
-    expect(resolveInitialTile(null)).toBe('map');
-    expect(resolveInitialTile('bogus')).toBe('map');
+    expect(resolveInitialTile('map')).toBe('map');
+    expect(resolveInitialTile(null)).toBe('sat');
+    expect(resolveInitialTile('bogus')).toBe('sat');
   });
 });

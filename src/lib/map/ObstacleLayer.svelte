@@ -3,7 +3,7 @@
   import L from 'leaflet';
   import type { ObstacleFeature } from '$lib/data/types';
   import { useMapLayer } from './useMapLayer.svelte';
-  import { FILLED_PATH_STYLE, bindFilledPathTooltip, attachFeatureGestures, syncMapFeatureSelection } from './mapUtils';
+  import { FILLED_PATH_STYLE, OBSTACLE_LABEL_ZOOM, bindFilledPathTooltip, attachFeatureGestures, syncMapFeatureSelection } from './mapUtils';
 
   let {
     features,
@@ -38,7 +38,7 @@
         enabled: gesturesEnabled
       });
       group.addLayer(layer);
-      bindFilledPathTooltip(layer, f.properties.name);
+      bindFilledPathTooltip(layer, f.properties.name, OBSTACLE_LABEL_ZOOM, 0);
     }
 
     for (const f of features) {

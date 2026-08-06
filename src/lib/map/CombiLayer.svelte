@@ -3,7 +3,7 @@
   import L from 'leaflet';
   import type { CombiFeature } from '$lib/data/types';
   import { useMapLayer } from './useMapLayer.svelte';
-  import { FILLED_PATH_STYLE, bindFilledPathTooltip, attachFeatureGestures, syncMapFeatureSelection } from './mapUtils';
+  import { FILLED_PATH_STYLE, COMBI_LABEL_ZOOM, bindFilledPathTooltip, attachFeatureGestures, syncMapFeatureSelection } from './mapUtils';
 
   let {
     features,
@@ -130,7 +130,7 @@
         enabled: gesturesEnabled
       });
       group.addLayer(rectangle);
-      bindFilledPathTooltip(rectangle, f.properties.name);
+      bindFilledPathTooltip(rectangle, f.properties.name, COMBI_LABEL_ZOOM, 1);
 
       if (countMarker) {
         group.addLayer(countMarker);

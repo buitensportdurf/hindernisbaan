@@ -24,7 +24,7 @@ export const TILE_LAYERS: Record<TileKey, TileLayerDef> = {
   }
 };
 
-export const DEFAULT_TILE: TileKey = 'map';
+export const DEFAULT_TILE: TileKey = 'sat';
 export const TILE_ERROR_THRESHOLD = 10;
 
 export function otherTile(key: TileKey): TileKey {

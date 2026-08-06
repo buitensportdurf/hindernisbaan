@@ -46,7 +46,9 @@
     const bounds = L.geoJSON({ type: 'FeatureCollection', features: fitFeatures } as FeatureCollection).getBounds();
     if (bounds.isValid()) {
       map.invalidateSize();
-      map.fitBounds(bounds, { padding: [48, 48], maxZoom: 18 });
+      // One step past the strict fit — features slightly overflow, labels are readable.
+      const fitZoom = map.getBoundsZoom(bounds, false, L.point(48, 48));
+      map.setView(bounds.getCenter(), Math.min(fitZoom + 1, 19));
       lastFitEpoch = fitEpoch;
     }
   });
@@ -88,7 +90,7 @@
       zoomControl: false,
       attributionControl: true,
       doubleClickZoom
-    }).setView(CENTER, 16);
+    }).setView(CENTER, 17);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     map.attributionControl.setPrefix(false);
     applyTile(tile);
