@@ -22,16 +22,6 @@
     }
   });
 
-  const variant = $derived.by(() => {
-    switch (kind) {
-      case 'obstacle':
-        return 'destructive' as const;
-      case 'combi':
-        return 'accent' as const;
-      case 'landmark':
-        return 'muted' as const;
-    }
-  });
 </script>
 
-<Badge {variant}>{label}</Badge>
+<Badge variant="accent">{label}</Badge>

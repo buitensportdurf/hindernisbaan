@@ -27,6 +27,7 @@ export const dict = {
     'mapdata.copyUrl': 'Bron-URL kopiëren',
     'mapdata.copyUrl.success': 'URL gekopieerd',
     'map.loading': 'Hindernisbaan laden…',
+    'map.sheet.obstacles': 'Hindernissen',
     'ls.title': 'localStorage vereist',
     'ls.body':
       'Deze app heeft een browser met localStorage nodig om instellingen en concepten op te slaan. Schakel privémodus uit of gebruik een moderne browser.',
@@ -105,6 +106,7 @@ export const dict = {
     'mapdata.copyUrl': 'Copy source URL',
     'mapdata.copyUrl.success': 'URL copied',
     'map.loading': 'Loading obstacle course…',
+    'map.sheet.obstacles': 'Obstacles',
     'ls.title': 'localStorage required',
     'ls.body':
       'This app needs a browser with localStorage to save settings and drafts. Turn off private mode or use a modern browser.',

@@ -4,7 +4,6 @@
     DrawerContent,
     DrawerTitle
   } from '$lib/components/ui/drawer';
-  import { Label } from '$lib/components/ui/label';
   import MapPinIcon from '@lucide/svelte/icons/map-pin';
   import { getIconComponent } from '$lib/durf-ds/icons';
   import { t, type Locale } from '$lib/i18n';
@@ -56,7 +55,6 @@
 
         {#if (feature.properties.notes ?? '').trim()}
           <div class="flex flex-col gap-1.5">
-            <Label>{t(locale, 'design.editor.notes')}</Label>
             <p class="whitespace-pre-wrap text-sm text-muted-foreground">
               {feature.properties.notes}
             </p>
@@ -65,7 +63,7 @@
 
         {#if feature.properties.kind === 'combi' && feature.properties.members.length > 0}
           <div class="flex flex-col gap-1.5">
-            <p class={sectionLabel}>{t(locale, 'design.editor.members')}</p>
+            <p class={sectionLabel}>{t(locale, 'map.sheet.obstacles')}</p>
             <ul class="flex flex-col">
               {#each feature.properties.members as member, i (i)}
                 <li class="flex flex-col">
