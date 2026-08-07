@@ -44,6 +44,8 @@ const LABEL_GAP = 4;
 const LABEL_EDGE_GAP = 6;
 /** Candidate directions in degrees off straight-up: up first, fanning out both sides, down last. */
 const LABEL_ANGLE_OFFSETS = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180];
+/** Wider rings tried when every angle at a closer ring is already taken. */
+const LABEL_RING_COUNT = 3;
 
 type LabelEntry = { layer: L.Layer; tier: number };
 type LabelState = { entries: Set<LabelEntry>; raf?: number; hooked?: boolean };
@@ -106,10 +108,11 @@ function rectOverlapArea(a: ScreenRect, b: ScreenRect): number {
  * straight-up first, sweeping around to straight-down. Overlapping another
  * label is forbidden; overlapping other features' geometry is penalized by
  * covered area, so a label takes a clean spot when one exists but still places
- * when boxed in (e.g. an obstacle inside a combi). Only a label whose whole
- * ring collides with other labels is hidden.
+ * when boxed in (e.g. an obstacle inside a combi). If every angle on a ring
+ * collides with other labels, wider rings are tried; only a label whose every
+ * ring is fully blocked is hidden.
  */
-function placeLabels(map: L.Map): void {
+export function placeLabels(map: L.Map): void {
   const state = labelStates.get(map);
   if (!state || state.entries.size === 0) return;
 
@@ -144,26 +147,33 @@ function placeLabels(map: L.Map): void {
   for (const item of items) {
     const { width: w, height: h } = item.bubble.getBoundingClientRect();
     let best: { x: number; y: number; rect: ScreenRect; penalty: number } | null = null;
-    for (const deg of LABEL_ANGLE_OFFSETS) {
-      const a = ((90 - deg) * Math.PI) / 180;
-      const x = item.box.cx + (item.box.hw + w / 2 + LABEL_EDGE_GAP) * Math.cos(a);
-      const y = item.box.cy - (item.box.hh + h / 2 + LABEL_EDGE_GAP) * Math.sin(a);
-      const rect: ScreenRect = { l: x - w / 2, t: y - h / 2, r: x + w / 2, b: y + h / 2 };
-      const collides = placed.some(
-        (p) =>
-          rect.l < p.r + LABEL_GAP &&
-          rect.r > p.l - LABEL_GAP &&
-          rect.t < p.b + LABEL_GAP &&
-          rect.b > p.t - LABEL_GAP
-      );
-      if (collides) continue;
-      let penalty = 0;
-      for (const f of featureRects) {
-        if (f.id === item.featureId) continue;
-        penalty += rectOverlapArea(rect, f.rect);
+    // If every angle on the ring hugging the feature collides with an already-placed
+    // label, step out to a wider ring and sweep again before giving up — otherwise a
+    // label in a dense cluster is culled even though open space exists further out.
+    ringLoop: for (let ring = 0; ring < LABEL_RING_COUNT; ring++) {
+      const ringGap = LABEL_EDGE_GAP + ring * (h + LABEL_GAP);
+      for (const deg of LABEL_ANGLE_OFFSETS) {
+        const a = ((90 - deg) * Math.PI) / 180;
+        const x = item.box.cx + (item.box.hw + w / 2 + ringGap) * Math.cos(a);
+        const y = item.box.cy - (item.box.hh + h / 2 + ringGap) * Math.sin(a);
+        const rect: ScreenRect = { l: x - w / 2, t: y - h / 2, r: x + w / 2, b: y + h / 2 };
+        const collides = placed.some(
+          (p) =>
+            rect.l < p.r + LABEL_GAP &&
+            rect.r > p.l - LABEL_GAP &&
+            rect.t < p.b + LABEL_GAP &&
+            rect.b > p.t - LABEL_GAP
+        );
+        if (collides) continue;
+        let penalty = 0;
+        for (const f of featureRects) {
+          if (f.id === item.featureId) continue;
+          penalty += rectOverlapArea(rect, f.rect);
+        }
+        if (!best || penalty < best.penalty - 0.5) best = { x, y, rect, penalty };
+        if (best.penalty === 0) break ringLoop;
       }
-      if (!best || penalty < best.penalty - 0.5) best = { x, y, rect, penalty };
-      if (best.penalty === 0) break;
+      if (best) break;
     }
     item.el.classList.toggle('tooltip-culled', !best);
     if (best) {
@@ -188,7 +198,7 @@ function scheduleLabelPlacement(map: L.Map): void {
 }
 
 /** Top-center of a layer's bounds — tooltip sits above the feature, not its centroid. */
-function tooltipAnchor(layer: L.Layer): L.LatLng {
+export function tooltipAnchor(layer: L.Layer): L.LatLng {
   if ('getBounds' in layer && typeof layer.getBounds === 'function') {
     const bounds = layer.getBounds();
     if (bounds.isValid()) {
@@ -242,6 +252,20 @@ export function bindFilledPathTooltip(
     if (!map) return;
     labelState(map).entries.delete(entry);
     scheduleLabelPlacement(map);
+  });
+
+  // Leaflet's own click handler re-opens an already-open hover tooltip and resets
+  // its position to the feature's raw center (Layer.Tooltip's _prepareOpen default),
+  // without re-firing 'tooltipopen' — so the top-center fix above never runs for it.
+  // Deferring to a microtask guarantees this runs after that synchronous reset,
+  // regardless of listener registration order across permanent/hover rebinds.
+  layer.on('click', () => {
+    queueMicrotask(() => {
+      const tooltip = layer.getTooltip();
+      if (tooltip && !tooltip.options.permanent && tooltip.isOpen()) {
+        tooltip.setLatLng(tooltipAnchor(layer));
+      }
+    });
   });
 
   let permanent = false;

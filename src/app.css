@@ -209,6 +209,11 @@ html, body { margin: 0; height: 100%; }
   opacity: 0;
 }
 
+/* A different combi is selected — this one's count badge steps aside. */
+.combi-count--selection-hidden {
+  opacity: 0;
+}
+
 /* Landmark pill */
 .landmark-pill {
   display: inline-flex;

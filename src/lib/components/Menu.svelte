@@ -6,6 +6,7 @@
   import { Button } from '$lib/components/ui/button';
   import { Label } from '$lib/components/ui/label';
   import { Switch } from '$lib/components/ui/switch';
+  import { ToggleGroup, ToggleGroupItem } from '$lib/components/ui/toggle-group';
   import { cn, focusById } from '$lib/utils';
   import { Card, CardTitle } from '$lib/components/ui/card';
   import MapDataStatus from './MapDataStatus.svelte';
@@ -13,13 +14,9 @@
   import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import ClipboardCheckIcon from '@lucide/svelte/icons/clipboard-check';
-  import DatabaseIcon from '@lucide/svelte/icons/database';
-import LanguagesIcon from '@lucide/svelte/icons/languages';
-  import LayersIcon from '@lucide/svelte/icons/layers';
   import MapIcon from '@lucide/svelte/icons/map';
   import MenuIcon from '@lucide/svelte/icons/menu';
   import PenLineIcon from '@lucide/svelte/icons/pen-line';
-  import SatelliteIcon from '@lucide/svelte/icons/satellite';
   import SettingsIcon from '@lucide/svelte/icons/settings';
   import XIcon from '@lucide/svelte/icons/x';
 
@@ -70,8 +67,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
 
   const menuButton =
     'h-auto w-full justify-start gap-3 rounded-lg px-3 py-2 text-sm font-semibold';
-  const languageButton =
-    'h-7 min-h-7 w-9 rounded-md px-0 py-0 text-xs font-semibold uppercase';
+  const settingsRow = 'h-8 min-h-8 w-full justify-start rounded-lg px-4 text-sm font-semibold';
   const sectionLabel =
     'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground';
   const menuIcon = 'size-4 shrink-0 text-muted-foreground';
@@ -181,7 +177,7 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
             </div>
           </header>
 
-          <div class="flex flex-col gap-5 px-3 pb-4 pt-1">
+          <div class="flex flex-col gap-6 px-5 pb-4 pt-1">
         {#if app.menuLevel === 'root'}
           <div class="flex flex-col gap-1">
             <Button
@@ -211,30 +207,24 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
             </Button>
           </div>
         {:else}
-          <section class="flex flex-col gap-2">
+          <section class="flex flex-col gap-1.5">
             <p class={sectionLabel}>
-              <LayersIcon class="size-3" />
               {t(app.locale, 'settings.tiles')}
             </p>
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1 pl-2">
               {#each ['map', 'sat'] as key (key)}
                 <Button
                   variant="ghost"
                   class={cn(
-                    menuButton,
+                    settingsRow,
                     app.tile === key && 'bg-secondary text-secondary-foreground'
                   )}
                   onclick={() => app.setTile(key as TileKey)}
                 >
-                  {#if key === 'map'}
-                    <MapIcon class={menuIcon} />
-                  {:else}
-                    <SatelliteIcon class={menuIcon} />
-                  {/if}
                   <span class="flex-1 text-left">
                     {t(app.locale, key === 'map' ? 'settings.tiles.map' : 'settings.tiles.sat')}
                     <span class="font-medium text-muted-foreground">
-                      {key === 'map' ? ' - ' : ' · '}{t(
+                      {' · '}{t(
                         app.locale,
                         key === 'map' ? 'settings.tiles.map.sub' : 'settings.tiles.sat.sub'
                       )}
@@ -247,31 +237,26 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
 
           <section class="flex flex-col gap-1.5">
             <p class={sectionLabel}>
-              <LanguagesIcon class="size-3" />
               {t(app.locale, 'settings.language')}
             </p>
-            <div class="flex w-fit gap-1">
+            <ToggleGroup
+              value={app.locale}
+              onValueChange={(v) => v && app.setLocale(v as typeof app.locale)}
+              class="ml-2 w-fit"
+            >
               {#each LOCALES as l (l)}
-                <Button
-                  variant="ghost"
-                  class={cn(
-                    languageButton,
-                    app.locale === l && 'bg-secondary text-secondary-foreground'
-                  )}
-                  onclick={() => app.setLocale(l)}
-                >
+                <ToggleGroupItem value={l} class="min-w-9 uppercase">
                   {l}
-                </Button>
+                </ToggleGroupItem>
               {/each}
-            </div>
+            </ToggleGroup>
           </section>
 
-          <section class="flex flex-col gap-2">
+          <section class="flex flex-col gap-1.5">
             <p class={sectionLabel}>
-              <SettingsIcon class="size-3" />
               {t(app.locale, 'settings.interaction')}
             </p>
-            <div class="flex items-center justify-between gap-3 px-1">
+            <div class="flex min-h-8 items-center justify-between gap-3 pl-2 pr-3">
               <Label for="labels-zoom-switch" class="font-normal">
                 {t(app.locale, 'settings.labels.zoomReveal')}
               </Label>
@@ -285,13 +270,14 @@ import LanguagesIcon from '@lucide/svelte/icons/languages';
 
           <section class="flex flex-col gap-1.5">
             <p class={sectionLabel}>
-              <DatabaseIcon class="size-3" />
               {t(app.locale, 'settings.mapdata')}
             </p>
-            <MapDataStatus {app} {onImport} {draft} />
-            {#if !draft}
-              {@render statusExtra?.()}
-            {/if}
+            <div class="flex flex-col pl-2 pr-3">
+              <MapDataStatus {app} {onImport} {draft} />
+              {#if !draft}
+                {@render statusExtra?.()}
+              {/if}
+            </div>
           </section>
         {/if}
           </div>

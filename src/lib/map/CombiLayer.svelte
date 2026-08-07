@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
+  import { getContext, untrack } from 'svelte';
   import L from 'leaflet';
   import type { CombiFeature } from '$lib/data/types';
   import { useMapLayer } from './useMapLayer.svelte';
@@ -28,7 +28,16 @@
     const id = selectedId;
     void features;
     if (!map) return;
-    queueMicrotask(() => syncMapFeatureSelection(map, id));
+    queueMicrotask(() => {
+      syncMapFeatureSelection(map, id);
+      map.eachLayer((layer) => {
+        if (!(layer instanceof L.Marker)) return;
+        const feature = (layer as L.Layer & { feature?: CombiFeature }).feature;
+        if (!feature) return;
+        const el = layer.getElement();
+        el?.classList.toggle('combi-count--selection-hidden', id !== null && id !== feature.id);
+      });
+    });
   });
 
   function roundedPolyPath(parts: L.Point[][], r: number): string {
@@ -70,7 +79,9 @@
   const COUNT_FIT_THRESHOLD = 16;
 
   useMapLayer((group) => {
-    const activeSelectedId = selectedId;
+    // Read without tracking: selection only toggles a CSS class (see the $effect
+    // above), it must not tear down and rebuild every combi tooltip on the map.
+    const activeSelectedId = untrack(() => selectedId);
     for (const f of features) {
       const latlngs = f.geometry.coordinates.map((ring) =>
         ring.map(([lng, lat]) => [lat, lng] as [number, number])
@@ -85,12 +96,14 @@
       rectangle.setLatLngs(latlngs);
 
       const count = f.properties.members.length;
-      const showCount = activeSelectedId === null || activeSelectedId === f.id;
-      const countMarker = count > 0 && showCount
+      const countMarker = count > 0
         ? L.marker(rectangle.getBounds().getCenter(), {
             icon: L.divIcon({
               html: String(count),
-              className: 'combi-count',
+              className:
+                activeSelectedId !== null && activeSelectedId !== f.id
+                  ? 'combi-count combi-count--selection-hidden'
+                  : 'combi-count',
               iconSize: [24, 24],
               iconAnchor: [12, 12]
             }),
@@ -98,6 +111,7 @@
             pmIgnore: true
           })
         : null;
+      if (countMarker) (countMarker as L.Layer & { feature?: CombiFeature }).feature = f;
 
       let lastMinEdge = Infinity;
       const syncCountVisibility = () => {
