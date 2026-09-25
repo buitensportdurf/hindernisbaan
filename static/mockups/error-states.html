@@ -3,517 +3,165 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fouten op de baan — voorstel</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <title>Fouttoestand — stippellijn</title>
     <link
       href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-400-normal.css"
       rel="stylesheet"
     />
     <link
-      href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-600-normal.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-700-normal.css"
+      href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-500-normal.css"
       rel="stylesheet"
     />
     <style>
       :root {
         --bok: #00a5e3;
-        --bok-ink: #00688f;
-        --ink: #1c241c;
-        --meadow: #d7e4cf;
-        --paper: #f6f8f4;
-        --tape: #ff5a1f;
-        --tape-ink: #1a120c;
-        --forest: #2c5a34;
-        --muted: #5c6b58;
-        --line: rgba(28, 36, 28, 0.12);
+        --orange: #f97316;
+        --ink: #373737;
+        --muted: #9b9b9b;
+        --paper: #f4f1ea;
+        --map: #f3f4f1;
         --font: "Geist Sans", "Geist", sans-serif;
       }
 
       * { box-sizing: border-box; }
-      html, body { margin: 0; height: 100%; }
+      html, body { margin: 0; min-height: 100%; }
       body {
         font-family: var(--font);
         color: var(--ink);
-        background: var(--meadow);
+        background: var(--map);
       }
 
-      button, a { font: inherit; }
-      button { cursor: pointer; }
-      :focus-visible {
-        outline: 2px solid var(--bok);
-        outline-offset: 3px;
-      }
-
-      .stage {
-        min-height: 100%;
+      main {
+        min-height: 100vh;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: 1fr 280px;
       }
 
       .map {
         position: relative;
+        min-height: 100vh;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%),
+          var(--map);
         overflow: hidden;
-        background:
-          radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.45), transparent 28%),
-          linear-gradient(160deg, #e4efe0 0%, #c9dcbd 48%, #d5e6c8 100%);
       }
 
-      .map::before {
-        content: "";
-        position: absolute;
-        inset: -20%;
-        background:
-          repeating-linear-gradient(
-            115deg,
-            transparent 0 46px,
-            rgba(44, 90, 52, 0.05) 46px 47px
-          );
-        pointer-events: none;
-      }
-
-      .path {
-        position: absolute;
-        inset: 12% 8% 22% 10%;
-        border: 0;
-        background:
-          radial-gradient(closest-side, transparent 68%, rgba(44, 90, 52, 0.08) 70% 71%, transparent 73%),
-          linear-gradient(var(--bok), var(--bok)) 18% 62% / 34% 10px no-repeat,
-          linear-gradient(var(--bok), var(--bok)) 48% 28% / 10px 38% no-repeat;
-        opacity: 0.85;
-        border-radius: 40% 60% 50% 45%;
-        pointer-events: none;
-      }
-
-      .chrome {
-        position: absolute;
-        z-index: 3;
-        top: 16px;
-        left: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .menu-btn, .count-pill {
-        border: 0;
-        background: #fff;
-        box-shadow: 0 4px 14px rgba(28, 36, 28, 0.12);
-      }
-
-      .menu-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: grid;
-        place-items: center;
-      }
-
-      .count-pill {
-        height: 44px;
-        border-radius: 999px;
-        padding: 0 14px 0 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--tape-ink);
-      }
-
-      .count-pill strong {
-        background: var(--tape);
-        color: #fff;
-        min-width: 22px;
-        height: 22px;
-        border-radius: 999px;
-        display: grid;
-        place-items: center;
-        font-size: 13px;
-      }
-
-      .count-pill span { font-size: 13px; font-weight: 600; }
-
-      .pin {
-        position: absolute;
-        z-index: 2;
-        transform: translate(-50%, -50%);
-        background: none;
-        border: 0;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .dot {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: #fff;
-        border: 5px solid var(--bok);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
-      }
-
-      .pin em {
-        font-style: normal;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--bok-ink);
-        background: rgba(255, 255, 255, 0.86);
-        padding: 3px 8px;
-        border-radius: 999px;
-      }
-
-      .fault {
-        position: absolute;
-        z-index: 2;
-        transform: translate(-50%, -50%);
-        border: 0;
-        background: none;
-        padding: 0;
-        text-align: left;
-      }
-
-      .fault[aria-current="true"] { z-index: 4; }
-
-      .tape {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 12px 7px 8px;
-        color: #fff;
-        font-weight: 700;
-        font-size: 14px;
-        letter-spacing: -0.01em;
-        background:
-          repeating-linear-gradient(
-            -32deg,
-            var(--tape) 0 10px,
-            #ff7a45 10px 12px,
-            var(--tape-ink) 12px 14px,
-            var(--tape) 14px 24px
-          );
-        box-shadow:
-          0 0 0 3px #fff,
-          0 8px 18px rgba(255, 90, 31, 0.35);
-        clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-      }
-
-      .fault[aria-current="true"] .tape {
-        box-shadow:
-          0 0 0 3px #fff,
-          0 0 0 6px var(--tape),
-          0 10px 22px rgba(255, 90, 31, 0.4);
-      }
-
-      .tape i {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #fff;
-        color: var(--tape);
-        display: grid;
-        place-items: center;
-        font-style: normal;
-        font-size: 13px;
-      }
-
-      .dock {
-        position: absolute;
-        z-index: 3;
-        left: 16px;
-        right: 16px;
-        bottom: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        max-width: 520px;
-      }
-
-      .dock header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 0 4px;
-      }
-
-      .dock header p {
-        margin: 0;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--forest);
-      }
-
-      .dock header small { color: var(--muted); font-size: 12px; }
-
-      .fault-row {
-        width: 100%;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 12px;
-        align-items: center;
-        text-align: left;
-        background: var(--paper);
-        border: 1px solid transparent;
-        border-radius: 14px;
-        padding: 12px 14px;
-        box-shadow: 0 8px 24px rgba(28, 36, 28, 0.08);
-      }
-
-      .fault-row[aria-current="true"] {
-        border-color: var(--tape);
-      }
-
-      .fault-row b { display: block; font-size: 15px; }
-      .fault-row span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
-      .fix {
-        color: var(--tape-ink);
-        background: #ffe8dc;
-        border-radius: 999px;
-        padding: 6px 10px;
-        font-size: 12px;
-        font-weight: 700;
-        white-space: nowrap;
-      }
-
-      .sheet {
-        background: #fff;
-        border-left: 1px solid var(--line);
-        padding: 28px 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-      }
-
-      .eyebrow {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--tape);
-      }
-
-      h1 {
-        margin: 4px 0 0;
-        font-size: 28px;
-        line-height: 1.1;
-        letter-spacing: -0.03em;
-      }
-
-      .sheet p.lead {
-        margin: 0;
-        color: var(--muted);
-        font-size: 15px;
-        line-height: 1.45;
-      }
-
-      label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-
-      input {
-        width: 100%;
-        border: 1.5px solid var(--tape);
-        background: #fff8f5;
-        border-radius: 10px;
-        padding: 12px 12px;
-        font: inherit;
-        font-size: 16px;
-      }
-
-      .hint {
-        margin: 8px 0 0;
-        font-size: 13px;
-        color: var(--tape-ink);
-      }
-
-      .actions { display: flex; gap: 8px; margin-top: auto; }
-
-      .primary, .quiet {
-        border-radius: 10px;
-        padding: 12px 14px;
-        font-weight: 700;
-      }
-
-      .primary {
-        border: 0;
-        background: var(--ink);
-        color: #fff;
-        flex: 1;
-      }
-
-      .quiet {
-        border: 1px solid var(--line);
-        background: #fff;
-        color: var(--ink);
-      }
+      .map svg { width: 100%; height: 100%; display: block; }
 
       .note {
-        font-size: 12px;
-        color: var(--muted);
+        padding: 28px 24px;
+        border-left: 1px solid rgba(55, 55, 55, 0.08);
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+
+      .note p {
+        margin: 0;
+        font-size: 13px;
         line-height: 1.45;
+        color: #5c5c5c;
       }
 
-      @media (max-width: 800px) {
-        .stage { grid-template-columns: 1fr; }
-        .map { min-height: 100svh; }
-        .sheet { border-left: 0; border-top: 1px solid var(--line); }
-        .dock { max-width: none; }
-        .dock header small { display: none; }
-        .fault-row span span,
-        .fault-row .tape { display: none; }
-        .fault-row { padding: 10px 12px; }
+      .note h1 {
+        margin: 0 0 6px;
+        font-size: 15px;
+        font-weight: 500;
       }
 
-      @media (prefers-reduced-motion: no-preference) {
-        .fault[aria-current="true"] .tape {
-          animation: flutter 1.6s ease-in-out infinite;
-        }
+      figure { margin: 0; }
+      figcaption {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
       }
 
-      @keyframes flutter {
-        50% { transform: rotate(-0.6deg) translateY(-1px); }
+      .swatch {
+        background: var(--map);
+        border-radius: 12px;
+        padding: 16px 12px 8px;
+      }
+
+      .swatch svg { width: 100%; height: 72px; display: block; }
+
+      @media (max-width: 720px) {
+        main { grid-template-columns: 1fr; }
+        .map { min-height: 70vh; }
+        .note { border-left: 0; border-top: 1px solid rgba(55, 55, 55, 0.08); }
       }
     </style>
   </head>
   <body>
-    <div class="stage">
-      <main class="map" aria-label="Ontwerpkaart">
-        <div class="path" aria-hidden="true"></div>
+    <main>
+      <section class="map" aria-label="Hindernissen met een fout">
+        <svg viewBox="0 0 640 780" role="img">
+          <title>Zelfde vormen, oranje stippellijn bij een fout</title>
 
-        <div class="chrome">
-          <button class="menu-btn" type="button" aria-label="Menu">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 7h16M4 12h16M4 17h16" />
+          <!-- healthy point -->
+          <circle cx="230" cy="78" r="18" fill="#fff" stroke="#00a5e3" stroke-width="9" />
+
+          <!-- error line: same capsule as the course, dotted orange edge -->
+          <rect x="203" y="118" width="54" height="250" rx="27" fill="#fff" stroke="#f97316" stroke-width="3.5" stroke-dasharray="1.2 8" stroke-linecap="round" />
+          <text x="230" y="252" text-anchor="middle" fill="#9b9b9b" font-size="20" font-family="Geist Sans, sans-serif">5</text>
+
+          <!-- error shape -->
+          <rect x="300" y="400" width="86" height="150" rx="43" fill="#fff" stroke="#f97316" stroke-width="3.5" stroke-dasharray="1 8" stroke-linecap="round" />
+          <text x="343" y="484" text-anchor="middle" fill="#9b9b9b" font-size="20" font-family="Geist Sans, sans-serif">2</text>
+
+          <!-- healthy shape -->
+          <rect x="130" y="430" width="78" height="168" rx="39" fill="#fff" stroke="#00a5e3" stroke-width="9" />
+          <text x="169" y="524" text-anchor="middle" fill="#9b9b9b" font-size="20" font-family="Geist Sans, sans-serif">4</text>
+
+          <!-- error point -->
+          <circle cx="430" cy="200" r="18" fill="#fff" stroke="#f97316" stroke-width="3.5" stroke-dasharray="1 7" stroke-linecap="round" />
+        </svg>
+      </section>
+
+      <aside class="note">
+        <div>
+          <h1>Alleen de lijn verandert</h1>
+          <p>Vorm, vulling en cijfer blijven. Een fout is oranje en gestippeld. Gezond blijft Bok-blauw en gesloten.</p>
+        </div>
+
+        <figure>
+          <figcaption>Punt</figcaption>
+          <div class="swatch">
+            <svg viewBox="0 0 220 72">
+              <circle cx="48" cy="36" r="16" fill="#fff" stroke="#00a5e3" stroke-width="8" />
+              <circle cx="156" cy="36" r="16" fill="#fff" stroke="#f97316" stroke-width="3" stroke-dasharray="1 6.5" stroke-linecap="round" />
             </svg>
-          </button>
-          <button class="count-pill" type="button" id="jump">
-            <strong>2</strong>
-            <span>klappen niet</span>
-          </button>
-        </div>
+          </div>
+        </figure>
 
-        <button class="pin" style="top: 28%; left: 30%" type="button" tabindex="-1">
-          <span class="dot"></span>
-          <em>Daknetcombi</em>
-        </button>
-        <button class="pin" style="top: 46%; left: 62%" type="button" tabindex="-1">
-          <span class="dot"></span>
-          <em>Spaanse ruiter</em>
-        </button>
-        <button class="pin" style="top: 70%; left: 24%" type="button" tabindex="-1">
-          <span class="dot"></span>
-          <em>Verzamelpunt</em>
-        </button>
+        <figure>
+          <figcaption>Lijn</figcaption>
+          <div class="swatch">
+            <svg viewBox="0 0 220 72">
+              <path d="M24 52 C 44 16, 74 16, 94 52" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" />
+              <path d="M24 52 C 44 16, 74 16, 94 52" fill="none" stroke="#00a5e3" stroke-width="26" stroke-linecap="round" />
+              <path d="M24 52 C 44 16, 74 16, 94 52" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" />
+              <path d="M126 52 C 146 16, 176 16, 196 52" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" />
+              <path d="M126 52 C 146 16, 176 16, 196 52" fill="none" stroke="#f97316" stroke-width="24" stroke-linecap="butt" stroke-dasharray="3 7" />
+              <path d="M126 52 C 146 16, 176 16, 196 52" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" />
+            </svg>
+          </div>
+        </figure>
 
-        <button class="fault" style="top: 38%; left: 46%" type="button" data-fault="naam" aria-current="true">
-          <span class="tape"><i>!</i> Naamloos</span>
-        </button>
-        <button class="fault" style="top: 62%; left: 70%" type="button" data-fault="lid">
-          <span class="tape"><i>!</i> Wifi combi</span>
-        </button>
-
-        <section class="dock" aria-label="Hindernissen met een fout">
-          <header>
-            <p>Op de baan</p>
-            <small>Gezonde hindernissen blijven blauw</small>
-          </header>
-          <button class="fault-row" type="button" data-fault="naam" aria-current="true">
-            <span class="tape" style="padding: 4px 8px; font-size: 12px"><i>!</i></span>
-            <span>
-              <b>Naamloos</b>
-              <span>Hindernis · punt</span>
-            </span>
-            <span class="fix">Geef een naam</span>
-          </button>
-          <button class="fault-row" type="button" data-fault="lid">
-            <span class="tape" style="padding: 4px 8px; font-size: 12px"><i>!</i></span>
-            <span>
-              <b>Wifi combi</b>
-              <span>Combi · leeg onderdeel</span>
-            </span>
-            <span class="fix">Naam onderdeel</span>
-          </button>
-        </section>
-      </main>
-
-      <aside class="sheet" id="sheet" aria-live="polite">
-        <div>
-          <p class="eyebrow">Hindernis klopt niet</p>
-          <h1 id="title">Naamloos</h1>
-        </div>
-        <p class="lead" id="lead">Deze hindernis staat op de kaart, maar heeft geen naam. Iemand op de baan kan hem niet terugvinden.</p>
-        <div>
-          <label for="field" id="field-label">Naam</label>
-          <input id="field" value="" placeholder="Bijvoorbeeld Zigzag apenhang" />
-          <p class="hint" id="hint">Verplicht. Zonder naam wordt het concept niet opgeslagen.</p>
-        </div>
-        <p class="note">Het lint blijft op de hindernis staan tot dit veld klopt.</p>
-        <div class="actions">
-          <button class="quiet" type="button">Verwijderen</button>
-          <button class="primary" type="button" id="save">Naam opslaan</button>
-        </div>
+        <figure>
+          <figcaption>Vlak</figcaption>
+          <div class="swatch">
+            <svg viewBox="0 0 220 72">
+              <rect x="22" y="8" width="44" height="56" rx="22" fill="#fff" stroke="#00a5e3" stroke-width="8" />
+              <text x="44" y="41" text-anchor="middle" fill="#9b9b9b" font-size="14" font-family="Geist Sans, sans-serif">5</text>
+              <rect x="132" y="8" width="44" height="56" rx="22" fill="#fff" stroke="#f97316" stroke-width="3" stroke-dasharray="1 6.5" stroke-linecap="round" />
+              <text x="154" y="41" text-anchor="middle" fill="#9b9b9b" font-size="14" font-family="Geist Sans, sans-serif">2</text>
+            </svg>
+          </div>
+        </figure>
       </aside>
-    </div>
-
-    <script>
-      const faults = {
-        naam: {
-          title: "Naamloos",
-          lead: "Deze hindernis staat op de kaart, maar heeft geen naam. Iemand op de baan kan hem niet terugvinden.",
-          label: "Naam",
-          placeholder: "Bijvoorbeeld Zigzag apenhang",
-          hint: "Verplicht. Zonder naam wordt het concept niet opgeslagen.",
-          save: "Naam opslaan"
-        },
-        lid: {
-          title: "Wifi combi",
-          lead: "Eén onderdeel in deze combi heeft geen naam. De rest van de combi is in orde.",
-          label: "Naam van het onderdeel",
-          placeholder: "Bijvoorbeeld palentarzan",
-          hint: "Een combi heeft minstens één genoemd onderdeel nodig.",
-          save: "Onderdeel opslaan"
-        }
-      };
-
-      const title = document.getElementById("title");
-      const lead = document.getElementById("lead");
-      const fieldLabel = document.getElementById("field-label");
-      const field = document.getElementById("field");
-      const hint = document.getElementById("hint");
-      const save = document.getElementById("save");
-
-      function select(id) {
-        const fault = faults[id];
-        title.textContent = fault.title;
-        lead.textContent = fault.lead;
-        fieldLabel.textContent = fault.label;
-        field.placeholder = fault.placeholder;
-        field.value = "";
-        hint.textContent = fault.hint;
-        save.textContent = fault.save;
-        document.querySelectorAll("[data-fault]").forEach((el) => {
-          el.setAttribute("aria-current", el.dataset.fault === id ? "true" : "false");
-        });
-        field.focus();
-      }
-
-      document.querySelectorAll("[data-fault]").forEach((el) => {
-        el.addEventListener("click", () => select(el.dataset.fault));
-      });
-
-      document.getElementById("jump").addEventListener("click", () => {
-        document.querySelector('.fault-row[aria-current="true"]')?.focus();
-      });
-
-      save.addEventListener("click", () => {
-        const name = field.value.trim();
-        hint.textContent = name
-          ? "Opgeslagen. Het lint verdwijnt zodra de baan weer klopt."
-          : "Vul eerst een naam in.";
-      });
-    </script>
+    </main>
   </body>
 </html>
