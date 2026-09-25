@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fouttoestand — stippellijn</title>
+    <link
+      href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-400-normal.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@5.2.5/latin-500-normal.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bok: #00a5e3;
+        --orange: #f97316;
+        --ink: #373737;
+        --muted: #9b9b9b;
+        --paper: #f4f1ea;
+        --map: #f3f4f1;
+        --font: "Geist Sans", "Geist", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--map);
+      }
+
+      main {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 280px;
+      }
+
+      .map {
+        position: relative;
+        min-height: 100vh;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%),
+          var(--map);
+        overflow: hidden;
+      }
+
+      .map svg { width: 100%; height: 100%; display: block; }
+
+      .note {
+        padding: 28px 24px;
+        border-left: 1px solid rgba(55, 55, 55, 0.08);
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+
+      .note p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #5c5c5c;
+      }
+
+      .note h1 {
+        margin: 0 0 6px;
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      figure { margin: 0; }
+      figcaption {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .swatch {
+        background: var(--map);
+        border-radius: 12px;
+        padding: 16px 12px 8px;
+      }
+
+      .swatch svg { width: 100%; height: 72px; display: block; }
+
+      @media (max-width: 720px) {
+        main { grid-template-columns: 1fr; }
+        .map { min-height: 70vh; }
+        .note { border-left: 0; border-top: 1px solid rgba(55, 55, 55, 0.08); }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="map" aria-label="Hindernissen met een fout">
+        <svg viewBox="0 0 640 780" role="img">
+          <title>Zelfde vormen, oranje stippellijn bij een fout</title>
+
+          <!-- healthy point -->
+          <circle cx="230" cy="78" r="18" fill="#fff" stroke="#00a5e3" stroke-width="9" />
+
+          <!-- error line: same capsule as the course, dotted orange edge -->
+          <rect x="203" y="118" width="54" height="250" rx="27" fill="#fff" stroke="#f97316" stroke-width="3.5" stroke-dasharray="1.2 8" stroke-linecap="round" />
+          <text x="230" y="252" text-anchor="middle" fill="#9b9b9b" font-size="20" font-family="Geist Sans, sans-serif">5</text>
+          <g transform="translate(268, 210)">
+            <rect width="92" height="28" rx="6" fill="#242424" />
+            <text x="46" y="18" text-anchor="middle" fill="#f3f3f3" font-size="12" font-family="Geist Sans, sans-serif">Geen naam</text>
+          </g>
+
+          <!-- error shape -->
+          <rect x="300" y="400" width="86" height="150" rx="43" fill="#fff" stroke="#f97316" stroke-width="3.5" stroke-dasharray="1 8" stroke-linecap="round" />
+          <text x="343" y="484" text-anchor="middle" fill="#9b9b9b" font-size="20" font-family="Geist Sans, sans-serif">2</text>
+          <g transform="translate(300, 362)">
+            <rect width="128" height="28" rx="6" fill="#242424" />
+            <text x="64" y="18" text-anchor="middle" fill="#f3f3f3" font-size="12" font-family="Geist Sans, sans-serif">Leeg onderdeel</text>
+          </g>
+
+          <!-- healthy shape -->
+          <rect x="130" y="430" width="78" height="168" rx="39" fill="#fff" stroke="#00a5e3" stroke-width="9" />
+          <text x="169" y="524" text-anchor="middle" fill="#9b9b9b" font-size="20" font-family="Geist Sans, sans-serif">4</text>
+
+          <!-- error point -->
+          <circle cx="430" cy="200" r="18" fill="#fff" stroke="#f97316" stroke-width="3.5" stroke-dasharray="1 7" stroke-linecap="round" />
+          <g transform="translate(368, 148)">
+            <rect width="124" height="28" rx="6" fill="#242424" />
+            <text x="62" y="18" text-anchor="middle" fill="#f3f3f3" font-size="12" font-family="Geist Sans, sans-serif">Naam ontbreekt</text>
+          </g>
+        </svg>
+      </section>
+
+      <aside class="note">
+        <div>
+          <h1>Alleen de lijn verandert</h1>
+          <p>Vorm, vulling en cijfer blijven. Een fout is oranje en gestippeld, met een donkere tooltip en lichte tekst. Gezond blijft Bok-blauw en gesloten.</p>
+        </div>
+
+        <figure>
+          <figcaption>Punt</figcaption>
+          <div class="swatch">
+            <svg viewBox="0 0 220 72">
+              <circle cx="48" cy="36" r="16" fill="#fff" stroke="#00a5e3" stroke-width="8" />
+              <circle cx="156" cy="36" r="16" fill="#fff" stroke="#f97316" stroke-width="3" stroke-dasharray="1 6.5" stroke-linecap="round" />
+            </svg>
+          </div>
+        </figure>
+
+        <figure>
+          <figcaption>Lijn</figcaption>
+          <div class="swatch">
+            <svg viewBox="0 0 220 72">
+              <path d="M24 52 C 44 16, 74 16, 94 52" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" />
+              <path d="M24 52 C 44 16, 74 16, 94 52" fill="none" stroke="#00a5e3" stroke-width="26" stroke-linecap="round" />
+              <path d="M24 52 C 44 16, 74 16, 94 52" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" />
+              <path d="M126 52 C 146 16, 176 16, 196 52" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" />
+              <path d="M126 52 C 146 16, 176 16, 196 52" fill="none" stroke="#f97316" stroke-width="24" stroke-linecap="butt" stroke-dasharray="3 7" />
+              <path d="M126 52 C 146 16, 176 16, 196 52" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" />
+            </svg>
+          </div>
+        </figure>
+
+        <figure>
+          <figcaption>Vlak</figcaption>
+          <div class="swatch">
+            <svg viewBox="0 0 220 72">
+              <rect x="22" y="8" width="44" height="56" rx="22" fill="#fff" stroke="#00a5e3" stroke-width="8" />
+              <text x="44" y="41" text-anchor="middle" fill="#9b9b9b" font-size="14" font-family="Geist Sans, sans-serif">5</text>
+              <rect x="132" y="8" width="44" height="56" rx="22" fill="#fff" stroke="#f97316" stroke-width="3" stroke-dasharray="1 6.5" stroke-linecap="round" />
+              <text x="154" y="41" text-anchor="middle" fill="#9b9b9b" font-size="14" font-family="Geist Sans, sans-serif">2</text>
+            </svg>
+          </div>
+        </figure>
+      </aside>
+    </main>
+  </body>
+</html>
