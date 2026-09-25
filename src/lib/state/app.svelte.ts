@@ -33,7 +33,6 @@ export function createAppState() {
   let dataVersion = $state<string | null>(null);
   let dataClub = $state<string | null>(null);
   let dataLogo = $state<string | null>(null);
-  let selectedId = $state<string | null>(null);
   let loadError = $state<string | null>(null);
   let loadState = $state<LoadState>('idle');
 
@@ -49,7 +48,6 @@ export function createAppState() {
     get dataClub() { return dataClub; },
     get dataLogo() { return dataLogo; },
     get dataCount() { return features.length; },
-    get selectedId() { return selectedId; },
     get loadError() { return loadError; },
     get loadState() { return loadState; },
     get obstacles(): ObstacleFeature[] {
@@ -83,16 +81,16 @@ export function createAppState() {
       loadError = null;
       loadState = 'loaded';
     },
+    /** Refit the map after a design-mode draft import without changing published features. */
+    bumpDataEpoch() {
+      dataEpoch += 1;
+    },
     setLoadError(msg: string) {
       loadError = msg;
       loadState = 'error';
     },
     setLoadState(s: 'idle' | 'loading') {
       loadState = s;
-    },
-    selectFeature(id: string | null) {
-      if (selectedId === id) return;
-      selectedId = id;
     }
   };
 }

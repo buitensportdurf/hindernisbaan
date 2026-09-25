@@ -30,7 +30,14 @@
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel>{t(locale, 'draft.discard.cancel')}</AlertDialogCancel>
-      <AlertDialogAction onclick={onConfirm}>{t(locale, 'draft.discard.confirm')}</AlertDialogAction>
+      <AlertDialogAction
+        onclick={() => {
+          onConfirm();
+          open = false;
+        }}
+      >
+        {t(locale, 'draft.discard.confirm')}
+      </AlertDialogAction>
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog>

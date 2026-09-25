@@ -1,9 +1,9 @@
 <script lang="ts">
   import {
-    Drawer,
-    DrawerContent,
-    DrawerTitle
-  } from '$lib/components/ui/drawer';
+    Sheet,
+    SheetContent,
+    SheetTitle
+  } from '$lib/components/ui/sheet';
   import MapPinIcon from '@lucide/svelte/icons/map-pin';
   import { getIconComponent } from '$lib/durf-ds/icons';
   import { t, type Locale } from '$lib/i18n';
@@ -11,14 +11,16 @@
   import FeatureKindBadge from './FeatureKindBadge.svelte';
 
   let {
-    open = $bindable(false),
+    open = false,
     feature,
     onClose,
+    onOpenChange,
     locale
   }: {
     open?: boolean;
     feature: MapFeature | null;
     onClose: () => void;
+    onOpenChange?: (open: boolean) => void;
     locale: Locale;
   } = $props();
 
@@ -36,10 +38,16 @@
     'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground';
 </script>
 
-<Drawer bind:open onOpenChange={(v) => { if (!v) onClose(); }}>
+<Sheet
+  {open}
+  onOpenChange={(v) => {
+    onOpenChange?.(v);
+    if (!v) onClose();
+  }}
+>
   {#if feature}
-    <DrawerContent>
-      <DrawerTitle class="sr-only">{displayName}</DrawerTitle>
+    <SheetContent side="bottom" class="gap-0 p-0">
+      <SheetTitle class="sr-only">{displayName}</SheetTitle>
 
       <div class="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-6 pt-4">
         <div class="flex flex-wrap items-center gap-2">
@@ -79,6 +87,6 @@
           </div>
         {/if}
       </div>
-    </DrawerContent>
+    </SheetContent>
   {/if}
-</Drawer>
+</Sheet>

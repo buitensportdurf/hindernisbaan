@@ -5,17 +5,19 @@
   import type { FeatureCollection } from 'geojson';
   import type { MapFeature } from '$lib/data/types';
   import { TILE_LAYERS, otherTile, TILE_ERROR_THRESHOLD, type TileKey } from './tiles';
-  import { isGeomanHandleTarget, isFeatureSurfaceTarget, shouldSuppressMapDeselect } from './mapUtils';
+  import { isGeomanHandleTarget, syncMapFeatureSelection } from './mapUtils';
 
   let {
     tile = 'map',
     fitFeatures,
     fitEpoch = 0,
     doubleClickZoom = true,
+    selectedId = null,
     onReady,
     onFailover,
     onBothTilesDown,
-    onDeselect,
+    onBackgroundClick,
+    clicksSuppressed,
     children
   }: {
     tile?: TileKey;
@@ -23,10 +25,12 @@
     /** Fit-to-features runs once per epoch — bump it to request a new fit. */
     fitEpoch?: number;
     doubleClickZoom?: boolean;
+    selectedId?: string | null;
     onReady?: () => void;
     onFailover?: (next: TileKey) => void;
     onBothTilesDown?: () => void;
-    onDeselect?: () => void;
+    onBackgroundClick?: () => void;
+    clicksSuppressed?: () => boolean;
     children?: Snippet;
   } = $props();
 
@@ -51,6 +55,20 @@
       map.setView(bounds.getCenter(), Math.min(fitZoom + 1, 19));
       lastFitEpoch = fitEpoch;
     }
+  });
+
+  $effect(() => {
+    if (!map) return;
+    const activeMap = map;
+    const id = selectedId;
+    const sync = () => {
+      queueMicrotask(() => syncMapFeatureSelection(activeMap, id));
+    };
+    sync();
+    activeMap.on('layeradd', sync);
+    return () => {
+      activeMap.off('layeradd', sync);
+    };
   });
 
   function makeLayer(key: TileKey): L.TileLayer {
@@ -96,11 +114,9 @@
     map.attributionControl.setPrefix(false);
     applyTile(tile);
     map.on('click', (e: L.LeafletMouseEvent) => {
-      const suppressed = shouldSuppressMapDeselect();
-      const geomanHandle = isGeomanHandleTarget(e.originalEvent.target);
-      const featureSurface = isFeatureSurfaceTarget(e.originalEvent.target);
-      if (suppressed || geomanHandle || featureSurface) return;
-      onDeselect?.();
+      if (isGeomanHandleTarget(e.originalEvent.target)) return;
+      if (clicksSuppressed?.()) return;
+      onBackgroundClick?.();
     });
     onReady?.();
     return () => map?.remove();

@@ -15,7 +15,7 @@
     right:
       'inset-y-0 right-0 h-full w-[min(92vw,420px)] border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
     bottom:
-      'inset-x-0 bottom-0 max-h-[85vh] w-full rounded-t-2xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom'
+      'inset-x-0 bottom-0 mx-auto max-h-[85vh] w-full rounded-t-2xl border-t sm:max-w-md sm:border-x data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom'
   } as const;
 </script>
 
@@ -31,6 +31,9 @@
     )}
     {...restProps}
   >
+    {#if side === 'bottom'}
+      <div class="mx-auto mt-4 h-1.5 w-12 rounded-full bg-muted"></div>
+    {/if}
     {@render children?.()}
     <DialogPrimitive.Close
       class="absolute right-4 top-4 rounded-md text-muted-foreground opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

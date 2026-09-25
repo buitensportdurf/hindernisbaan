@@ -15,6 +15,7 @@
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import ClipboardCheckIcon from '@lucide/svelte/icons/clipboard-check';
   import MapIcon from '@lucide/svelte/icons/map';
+  import SatelliteIcon from '@lucide/svelte/icons/satellite';
   import MenuIcon from '@lucide/svelte/icons/menu';
   import PenLineIcon from '@lucide/svelte/icons/pen-line';
   import SettingsIcon from '@lucide/svelte/icons/settings';
@@ -221,6 +222,11 @@
                   )}
                   onclick={() => app.setTile(key as TileKey)}
                 >
+                  {#if key === 'map'}
+                    <MapIcon class={menuIcon} />
+                  {:else}
+                    <SatelliteIcon class={menuIcon} />
+                  {/if}
                   <span class="flex-1 text-left">
                     {t(app.locale, key === 'map' ? 'settings.tiles.map' : 'settings.tiles.sat')}
                     <span class="font-medium text-muted-foreground">
@@ -245,7 +251,8 @@
               class="ml-2 w-fit"
             >
               {#each LOCALES as l (l)}
-                <ToggleGroupItem value={l} class="min-w-9 uppercase">
+                <ToggleGroupItem value={l} class="min-w-9 gap-1.5 uppercase">
+                  <span aria-hidden="true">{l === 'nl' ? '🇳🇱' : '🇬🇧'}</span>
                   {l}
                 </ToggleGroupItem>
               {/each}

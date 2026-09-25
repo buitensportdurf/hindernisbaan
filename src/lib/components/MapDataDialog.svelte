@@ -5,9 +5,13 @@
   import { Button } from '$lib/components/ui/button';
   import type { FeatureCollection } from '$lib/data/types';
   import { toast } from 'svelte-sonner';
+  import type { DraftChange } from '$lib/design/draftDiff';
   import CheckIcon from '@lucide/svelte/icons/check';
   import CopyIcon from '@lucide/svelte/icons/copy';
   import DatabaseIcon from '@lucide/svelte/icons/database';
+  import DownloadIcon from '@lucide/svelte/icons/download';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import UploadIcon from '@lucide/svelte/icons/upload';
   import XIcon from '@lucide/svelte/icons/x';
 
   let {
@@ -18,7 +22,9 @@
     onDownload,
     onImport,
     onRevertDraft,
-    onClose
+    onClose,
+    isDraft = false,
+    changes = undefined
   }: {
     locale: Locale;
     data: FeatureCollection;
@@ -28,6 +34,8 @@
     onImport: (text: string) => void;
     onRevertDraft?: () => void;
     onClose: () => void;
+    isDraft?: boolean;
+    changes?: DraftChange[];
   } = $props();
 
   let fileInput: HTMLInputElement;
@@ -179,27 +187,68 @@
       <p class="break-words text-xs text-destructive">{validationErrors}</p>
     {/if}
 
+    {#if changes}
+      <div class="flex flex-col gap-1.5">
+        <p class="text-xs font-medium text-muted-foreground">{t(locale, 'mapdata.changes')}</p>
+        {#if changes.length === 0}
+          <p class="text-sm text-foreground">{t(locale, 'mapdata.changes.none')}</p>
+        {:else}
+          <ul class="flex max-h-40 flex-col gap-1 overflow-y-auto text-sm">
+            {#each changes as change (change.id + change.type)}
+              <li class="text-foreground">
+                <span class="text-muted-foreground">
+                  {change.type === 'added'
+                    ? t(locale, 'mapdata.changes.added')
+                    : change.type === 'removed'
+                      ? t(locale, 'mapdata.changes.removed')
+                      : t(locale, 'mapdata.changes.updated')}
+                </span>
+                {change.name || t(locale, 'design.editor.untitled')}
+                {#if change.type === 'updated'}
+                  <span class="text-muted-foreground">
+                    ({change.fields
+                      .map((field) => {
+                        if (field === 'name') return t(locale, 'mapdata.changes.field.name');
+                        if (field === 'notes') return t(locale, 'mapdata.changes.field.notes');
+                        if (field === 'geometry') return t(locale, 'mapdata.changes.field.geometry');
+                        if (field === 'kind') return t(locale, 'mapdata.changes.field.kind');
+                        if (field === 'icon') return t(locale, 'mapdata.changes.field.icon');
+                        return t(locale, 'mapdata.changes.field.members');
+                      })
+                      .join(', ')})
+                  </span>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+    {/if}
+
     {#if onRevertDraft}
       <Button variant="destructive" class="w-full" onclick={onRevertDraft}>
+        <Trash2Icon class="size-4" />
         {t(locale, 'draft.discard')}
       </Button>
     {/if}
 
     <div class="flex flex-col gap-2">
       <Button variant="outline" class="w-full" onclick={handleDownload}>
-        {t(locale, 'mapdata.download')}
+        <DownloadIcon class="size-4" />
+        {t(locale, isDraft ? 'mapdata.download.draft' : 'mapdata.download')}
       </Button>
       <Button variant="outline" class="w-full" onclick={() => fileInput.click()}>
+        <UploadIcon class="size-4" />
         {t(locale, 'mapdata.import')}
       </Button>
     </div>
-  </div>
 
-  <input
-    bind:this={fileInput}
-    type="file"
-    accept=".geojson,application/geo+json,application/json"
-    class="hidden"
-    onchange={handleFileChange}
-  />
+    <input
+      bind:this={fileInput}
+      type="file"
+      accept=".geojson,application/geo+json,application/json"
+      class="hidden"
+      onchange={handleFileChange}
+    />
+  </div>
 </div>

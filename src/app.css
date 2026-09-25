@@ -65,6 +65,11 @@ html, body { margin: 0; height: 100%; }
   visibility: hidden;
 }
 
+/* Another feature is selected — this name label steps aside (permanent ones stay open so Geoman reopen still works). */
+.leaflet-tooltip.tooltip-selection-hidden {
+  visibility: hidden;
+}
+
 .leaflet-tooltip-top:before,
 .leaflet-tooltip-bottom:before,
 .leaflet-tooltip-left:before,
@@ -184,6 +189,42 @@ html, body { margin: 0; height: 100%; }
 }
 
 /* Combi member count */
+/* Suggested midpoint on a line: quiet until hover, then a larger solid plus.
+   Size and margin are set here because Geoman pins both with !important, and
+   Leaflet positions the icon with an inline transform, so CSS scale/transform
+   on hover never shows. */
+.marker-icon-middle {
+  opacity: 0.45 !important;
+  width: 10px !important;
+  height: 10px !important;
+  margin: -5px 0 0 -5px !important;
+  border-color: #00a5e3 !important;
+  transition: width 120ms ease, height 120ms ease, margin 120ms ease, opacity 120ms ease;
+}
+.marker-icon-middle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(#00a5e3, #00a5e3) center / 10px 1.5px no-repeat,
+    linear-gradient(#00a5e3, #00a5e3) center / 1.5px 10px no-repeat;
+  opacity: 0;
+  pointer-events: none;
+}
+.marker-icon-middle:hover {
+  opacity: 1 !important;
+  width: 26px !important;
+  height: 26px !important;
+  margin: -13px 0 0 -13px !important;
+}
+.marker-icon-middle:hover::after {
+  opacity: 1;
+}
+
 .combi-rotate-handle {
   background-color: #fff;
   border: 2px solid #f59e0b;
@@ -209,8 +250,13 @@ html, body { margin: 0; height: 100%; }
   opacity: 0;
 }
 
-/* A different combi is selected — this one's count badge steps aside. */
+/* A different combi is selected — this one's count badge steps aside.
+   (Cannot use `.has-selection .selected.combi-zone ~ .combi-count` — count is a sibling marker.) */
 .combi-count--selection-hidden {
+  opacity: 0;
+}
+
+.has-selection .combi-count:not(.selected) {
   opacity: 0;
 }
 

@@ -2,9 +2,9 @@
   import { onMount } from 'svelte';
   import AppShell from '$lib/components/AppShell.svelte';
   import DrawToolbar from '$lib/design/DrawToolbar.svelte';
-  import type { DrawTool } from '$lib/design/drawTool';
   import GeomanController from '$lib/design/GeomanController.svelte';
   import FeatureEditorSheet from '$lib/design/FeatureEditorSheet.svelte';
+  import { createInteractionController } from '$lib/interaction/controller.svelte';
   import { createAppState } from '$lib/state/app.svelte';
   import { createDraftState } from '$lib/state/draft.svelte';
   import { fetchFeatures, LoadError } from '$lib/data/loader';
@@ -20,40 +20,20 @@
   const app = createAppState();
   const draft = createDraftState();
 
-  let tool = $state<DrawTool>(null);
-  let detailsOpen = $state(false);
   let lastInvalidToastAt = 0;
 
-  const gesturesEnabled = () => tool === null;
-
-  function handleSelect(id: string) {
-    if (tool !== null) return;
-    app.selectFeature(id);
-  }
-
-  function handleOpenDetails(id: string) {
-    if (tool !== null) return;
-    app.selectFeature(id);
-    detailsOpen = true;
-  }
-
-  function closeDetails() {
-    app.selectFeature(null);
-  }
-
-  $effect(() => {
-    if (app.selectedId === null) detailsOpen = false;
-  });
-
-  // Starting a new drawing exits the current selection.
-  $effect(() => {
-    if (tool !== null && app.selectedId !== null) {
-      app.selectFeature(null);
+  const interaction = createInteractionController({
+    openDetailsOn: 'dblclick',
+    isMenuOpen: () => app.menuOpen,
+    closeMenu: () => app.closeMenu(),
+    onDelete: (id) => {
+      draft.removeFeature(id);
+      interaction.deleted(id);
     }
   });
 
   $effect(() => {
-    if (draft.isValid) return;
+    if (draft.isValid || interaction.detailsOpen) return;
     const now = Date.now();
     if (now - lastInvalidToastAt < 2000) return;
     lastInvalidToastAt = now;
@@ -61,29 +41,6 @@
   });
 
   onMount(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        // Cancel an active draw tool; Geoman aborts its own draw on Escape,
-        // so this keeps the toolbar state in sync with the map.
-        if (tool !== null) tool = null;
-        return;
-      }
-      if (e.key !== 'Backspace' && e.key !== 'Delete') return;
-      const el = e.target;
-      if (
-        el instanceof HTMLInputElement ||
-        el instanceof HTMLTextAreaElement ||
-        (el instanceof HTMLElement && el.isContentEditable)
-      ) {
-        return;
-      }
-      if (!app.selectedId || tool !== null) return;
-      e.preventDefault();
-      deleteSelectedFeature();
-    }
-
-    window.addEventListener('keydown', onKeyDown);
-
     (async () => {
       app.setLoadState('loading');
       try {
@@ -94,8 +51,6 @@
         app.setLoadError(err instanceof LoadError ? err.message : 'Onbekende fout / Unknown error');
       }
     })();
-
-    return () => window.removeEventListener('keydown', onKeyDown);
   });
 
   function roundCoords<T>(coordinates: T): T {
@@ -106,12 +61,13 @@
   }
 
   function handleCreate(shape: 'Marker' | 'Line' | 'Polygon' | 'Rectangle', layer: L.Layer) {
+    const currentTool = interaction.tool;
     const geojson = (layer as L.Marker | L.Polyline | L.Polygon).toGeoJSON();
     const coordinates = roundCoords(geojson.geometry.coordinates);
     const id = generateId();
 
     if (shape === 'Marker') {
-      if (tool === 'landmark') {
+      if (currentTool === 'landmark') {
         draft.addFeature({
           type: 'Feature',
           id,
@@ -150,9 +106,7 @@
     }
 
     layer.remove(); // the *Layer components re-render this feature from draft state instead
-    app.selectFeature(id);
-    detailsOpen = true;
-    tool = null;
+    interaction.created(id, draft.isValid);
   }
 
   function handleEdit(feature: MapFeature, layer: L.Layer) {
@@ -171,9 +125,7 @@
 
   function handleDeleteSelected(id: string) {
     draft.removeFeature(id);
-    app.selectFeature(null);
-    detailsOpen = false;
-    tool = null;
+    interaction.deleted(id);
   }
 
   function handleRemove(feature: MapFeature) {
@@ -181,59 +133,62 @@
   }
 
   function deleteSelectedFeature() {
-    if (app.selectedId) handleDeleteSelected(app.selectedId);
+    if (interaction.selectedId) handleDeleteSelected(interaction.selectedId);
   }
 
-  const selectedFeature = $derived(draft.features.find((f) => f.id === app.selectedId) ?? null);
+  function deselectFeature() {
+    if (interaction.detailsOpen) interaction.closeDetails();
+    interaction.dispatch({ type: 'escape' });
+  }
+
+  const selectedFeature = $derived(
+    draft.features.find((f) => f.id === interaction.selectedId) ?? null
+  );
   const fitFeatures = $derived(app.loadState === 'loaded' ? draft.features : null);
 </script>
 
-<AppShell {app} mode="design" hasDraftProblem={!draft.isValid} {draft} {fitFeatures}>
+<AppShell {app} {interaction} mode="design" hasDraftProblem={!draft.isValid} {draft} {fitFeatures}>
   {#snippet toolbar()}
     <DrawToolbar
-      bind:tool
+      tool={interaction.tool}
+      onToolChange={(t) => interaction.setTool(t)}
       locale={app.locale}
-      selectedId={app.selectedId}
+      selectedId={interaction.selectedId}
       onDeleteSelected={deleteSelectedFeature}
+      onDeselect={deselectFeature}
     />
   {/snippet}
 
   {#snippet editorPanel()}
     <FeatureEditorSheet
-      bind:open={detailsOpen}
+      open={interaction.detailsOpen}
+      onOpenChange={(v) => {
+        if (!v) interaction.closeDetails();
+      }}
       feature={selectedFeature}
       {draft}
       onRequestDelete={handleDeleteSelected}
-      onClose={closeDetails}
+      onClose={() => interaction.closeDetails()}
       locale={app.locale}
     />
   {/snippet}
 
 
   {#snippet mapLayers()}
-    <GeomanController {tool} selectedId={app.selectedId} onCreate={handleCreate} onEdit={handleEdit} onRemove={handleRemove} />
+    <GeomanController {interaction} locale={app.locale} onCreate={handleCreate} onEdit={handleEdit} onRemove={handleRemove} />
     <ObstacleLayer
       features={draft.obstacles}
-      selectedId={app.selectedId}
-      onSelect={handleSelect}
-      onOpenDetails={handleOpenDetails}
-      {gesturesEnabled}
+      {interaction}
       labelsEnabled={app.labels === 'zoom'}
     />
     <CombiLayer
       features={draft.combis}
-      selectedId={app.selectedId}
-      onSelect={handleSelect}
-      onOpenDetails={handleOpenDetails}
-      {gesturesEnabled}
+      {interaction}
       labelsEnabled={app.labels === 'zoom'}
     />
     <LandmarkLayer
       features={draft.landmarks}
-      selectedId={app.selectedId}
-      onSelect={handleSelect}
-      onOpenDetails={handleOpenDetails}
-      {gesturesEnabled}
+      {interaction}
     />
   {/snippet}
 </AppShell>

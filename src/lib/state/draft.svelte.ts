@@ -35,9 +35,10 @@ export function createDraftState() {
     const result = validateCollection(collection());
     isValid = result.valid;
     validationErrors = result.valid ? null : result.errors;
+    // Any local edit is a draft — even when invalid (and not written to storage yet).
+    hasStoredDraft = true;
     if (result.valid) {
       writeKey(DRAFT_KEY, JSON.stringify(collection()));
-      hasStoredDraft = true;
     }
   }
 
@@ -85,7 +86,7 @@ export function createDraftState() {
       club = live.club;
       version = live.version;
       logo = live.logo;
-      features = live.features;
+      features = live.features.map((f) => structuredClone(f));
       isValid = true;
       validationErrors = null;
       hasStoredDraft = false;
@@ -111,14 +112,26 @@ export function createDraftState() {
     },
 
     discard(live: FeatureCollection) {
-      club = live.club;
-      version = live.version;
-      logo = live.logo;
-      features = live.features;
+      // $state.snapshot: live features are often a state proxy, and structuredClone
+      // throws on those — that aborted discard and left the confirm dialog open.
+      const next = $state.snapshot(live);
+      club = next.club;
+      version = next.version;
+      logo = next.logo;
+      features = next.features.map((f) => structuredClone(f));
       isValid = true;
       validationErrors = null;
       removeKey(DRAFT_KEY);
       hasStoredDraft = false;
+    },
+
+    /** Replace the draft with an imported course and persist it as a local draft. */
+    replaceWith(next: FeatureCollection) {
+      club = next.club;
+      version = next.version;
+      logo = next.logo;
+      features = next.features.map((f) => structuredClone(f));
+      revalidateAndPersist();
     },
 
     exportCollection(): FeatureCollection {

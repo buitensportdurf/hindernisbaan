@@ -7,6 +7,7 @@
   import LoadFailDialog from './LoadFailDialog.svelte';
   import TilesDownDialog from './TilesDownDialog.svelte';
   import { createAppState, type AppState } from '$lib/state/app.svelte';
+  import type { InteractionController } from '$lib/interaction/controller.svelte';
   import { fetchFeatures, parseFeatures, LoadError } from '$lib/data/loader';
   import ObstacleLayer from '$lib/map/ObstacleLayer.svelte';
   import CombiLayer from '$lib/map/CombiLayer.svelte';
@@ -14,6 +15,7 @@
 
   let {
     app = createAppState(),
+    interaction,
     mode = 'map',
     hasDraftProblem = false,
     draft = undefined,
@@ -24,6 +26,7 @@
     mapLayers
   }: {
     app?: AppState;
+    interaction: InteractionController;
     mode?: 'map' | 'design';
     hasDraftProblem?: boolean;
     draft?: import('$lib/state/draft.svelte').DraftState;
@@ -69,6 +72,10 @@
   }
 
   onMount(() => {
+    const onKeyDown = (e: KeyboardEvent) => interaction.handleKeydown(e);
+    // Capture runs before the dialog's bubble handler, so Escape still sees details as open.
+    window.addEventListener('keydown', onKeyDown, true);
+
     const params = devSearchParams();
     const loaderrKey = params?.get('loaderr');
     if (loaderrKey && loaderrKey in LOAD_ERROR_PREVIEWS) {
@@ -77,6 +84,7 @@
       load();
     }
     if (params?.has('tilesdown')) tilesDown = true;
+    return () => window.removeEventListener('keydown', onKeyDown, true);
   });
 
   const fitFeaturesResolved = $derived(
@@ -86,49 +94,35 @@
         ? app.features
         : null
   );
-
-  function handleWindowKeydown(e: KeyboardEvent) {
-    if (e.key !== 'Escape') return;
-    // Overlays (drawers, popovers) consume Escape first; peel one layer per press.
-    if (e.defaultPrevented) return;
-    if (app.menuOpen) {
-      app.closeMenu();
-      return;
-    }
-    if (app.selectedId !== null) app.selectFeature(null);
-  }
 </script>
 
-<svelte:window onkeydown={handleWindowKeydown} />
-
-<div class="fixed inset-0 overflow-hidden" class:has-selection={app.selectedId !== null}>
+<div class="fixed inset-0 overflow-hidden" class:has-selection={interaction.selectedId !== null}>
   <Toaster position="bottom-center" richColors closeButton />
   <MapCanvas
     tile={app.tile}
     fitFeatures={fitFeaturesResolved}
     fitEpoch={app.dataEpoch}
     doubleClickZoom={mode !== 'design'}
+    selectedId={interaction.selectedId}
     onFailover={(n) => app.failoverTile(n)}
     onBothTilesDown={() => (tilesDown = true)}
-    onDeselect={() => app.selectFeature(null)}
+    onBackgroundClick={() => interaction.backgroundClick()}
+    clicksSuppressed={() => interaction.clicksSuppressed}
   >
     {#if mode === 'map'}
       <ObstacleLayer
         features={app.obstacles}
-        selectedId={app.selectedId}
-        onSelect={(id) => app.selectFeature(id)}
+        {interaction}
         labelsEnabled={app.labels === 'zoom'}
       />
       <CombiLayer
         features={app.combis}
-        selectedId={app.selectedId}
-        onSelect={(id) => app.selectFeature(id)}
+        {interaction}
         labelsEnabled={app.labels === 'zoom'}
       />
       <LandmarkLayer
         features={app.landmarks}
-        selectedId={app.selectedId}
-        onSelect={(id) => app.selectFeature(id)}
+        {interaction}
       />
     {/if}
     {@render mapLayers?.()}

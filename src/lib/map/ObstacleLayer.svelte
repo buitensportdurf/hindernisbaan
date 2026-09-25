@@ -1,46 +1,54 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
+  import { getContext, untrack } from 'svelte';
   import L from 'leaflet';
   import type { ObstacleFeature } from '$lib/data/types';
+  import type { InteractionController } from '$lib/interaction/controller.svelte';
   import { useMapLayer } from './useMapLayer.svelte';
-  import { FILLED_PATH_STYLE, OBSTACLE_LABEL_ZOOM, bindFilledPathTooltip, attachFeatureGestures, syncMapFeatureSelection } from './mapUtils';
+  import { FILLED_PATH_STYLE, OBSTACLE_LABEL_ZOOM, syncFilledPathTooltip } from './mapUtils';
+  import { bindFeatureInteraction } from './featureGestures';
 
   let {
     features,
-    selectedId,
-    onSelect,
-    onOpenDetails,
-    gesturesEnabled,
+    interaction,
     labelsEnabled = true
   }: {
     features: ObstacleFeature[];
-    selectedId: string | null;
-    onSelect: (id: string) => void;
-    onOpenDetails?: (id: string) => void;
-    gesturesEnabled?: () => boolean;
+    interaction: InteractionController;
     labelsEnabled?: boolean;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
 
+  // Geometry only — typing a name must not tear the layer down and redraw it.
+  const geometryKey = $derived(
+    features
+      .map((f) => `${f.id}:${f.geometry.type}:${JSON.stringify(f.geometry.coordinates)}`)
+      .join('\n')
+  );
+
   $effect(() => {
+    const names = features.map((f) => [f.id, f.properties.name] as const);
+    const zoom = labelsEnabled ? OBSTACLE_LABEL_ZOOM : undefined;
     const map = getMap();
-    const id = selectedId;
-    void features;
     if (!map) return;
-    queueMicrotask(() => syncMapFeatureSelection(map, id));
+    untrack(() => {
+      map.eachLayer((layer) => {
+        const feature = (layer as L.Layer & { feature?: ObstacleFeature; options?: { pmIgnore?: boolean } }).feature;
+        const pmIgnore = (layer as L.Layer & { options?: { pmIgnore?: boolean } }).options?.pmIgnore;
+        if (!feature || pmIgnore) return;
+        const name = names.find(([id]) => id === feature.id)?.[1];
+        if (name === undefined) return;
+        syncFilledPathTooltip(layer, name, zoom);
+      });
+    });
   });
 
   useMapLayer((group) => {
     function attach(layer: L.Layer, f: ObstacleFeature) {
       (layer as L.Layer & { feature?: ObstacleFeature }).feature = f;
-      attachFeatureGestures(layer, f.id, {
-        onSelect,
-        onOpenDetails,
-        enabled: gesturesEnabled
-      });
+      bindFeatureInteraction(layer, f.id, interaction);
       group.addLayer(layer);
-      bindFilledPathTooltip(layer, f.properties.name, labelsEnabled ? OBSTACLE_LABEL_ZOOM : undefined);
+      syncFilledPathTooltip(layer, f.properties.name, labelsEnabled ? OBSTACLE_LABEL_ZOOM : undefined);
     }
 
     for (const f of features) {
@@ -82,6 +90,8 @@
         hitLine.on('pm:dragend', syncLineVisuals);
         hitLine.on('pm:markerdrag', syncLineVisuals);
         hitLine.on('pm:markerdragend', syncLineVisuals);
+        hitLine.on('pm:vertexadded', syncLineVisuals);
+        hitLine.on('pm:vertexremoved', syncLineVisuals);
 
         (outerLine as L.Layer & { feature?: ObstacleFeature }).feature = f;
         (innerLine as L.Layer & { feature?: ObstacleFeature }).feature = f;
@@ -101,5 +111,5 @@
         );
       }
     }
-  });
+  }, () => geometryKey);
 </script>

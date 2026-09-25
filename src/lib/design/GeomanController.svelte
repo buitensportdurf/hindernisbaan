@@ -3,21 +3,24 @@
   import L from 'leaflet';
   import '@geoman-io/leaflet-geoman-free';
   import type { MapFeature } from '$lib/data/types';
-  import { notifyMapGestureEnd, notifyMapGestureStart, syncMapFeatureSelection } from '$lib/map/mapUtils';
+  import type { InteractionController } from '$lib/interaction/controller.svelte';
+  import { syncMapFeatureSelection } from '$lib/map/mapUtils';
   import type { DrawTool } from './drawTool';
+  import { GEOMETRY_COMMIT_EVENTS, selectedEditConfig, type SelectedEditConfig } from './selectedEditConfig';
+  import { t, type Locale } from '$lib/i18n';
 
   let {
-    tool,
-    selectedId = null,
+    interaction,
     onCreate,
     onEdit,
-    onRemove
+    onRemove,
+    locale
   }: {
-    tool: DrawTool;
-    selectedId?: string | null;
+    interaction: InteractionController;
     onCreate: (shape: 'Marker' | 'Line' | 'Polygon' | 'Rectangle', layer: L.Layer) => void;
     onEdit: (feature: MapFeature, layer: L.Layer) => void;
     onRemove: (feature: MapFeature) => void;
+    locale: Locale;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
@@ -34,14 +37,6 @@
     rectangle: 'Rectangle'
   } as const;
 
-  function isDraggableFeature(feature: MapFeature): boolean {
-    return (
-      feature.properties.kind === 'obstacle' ||
-      feature.properties.kind === 'combi' ||
-      feature.properties.kind === 'landmark'
-    );
-  }
-
   type PmLayer = {
     setOptions?: (o: object) => void;
     disable: () => void;
@@ -51,11 +46,21 @@
     enableRotate?: () => void;
     disableRotate?: () => void;
     enabled?: () => boolean;
+    layerDragEnabled?: () => boolean;
+    rotateEnabled?: () => boolean;
     /** Geoman internal — repositions vertex handles after geometry changes it doesn't track. */
     _initMarkers?: () => void;
   };
 
-  let pendingSync: { map: L.Map; tool: DrawTool; selectedId: string | null } | null = null;
+  function isDraggableFeature(feature: MapFeature): boolean {
+    return (
+      feature.properties.kind === 'obstacle' ||
+      feature.properties.kind === 'combi' ||
+      feature.properties.kind === 'landmark'
+    );
+  }
+
+  let pendingMap: L.Map | null = null;
   let syncScheduled = false;
   const combiRotateHandles = new Map<string, L.Marker>();
 
@@ -135,7 +140,7 @@
 
     handle.on('dragstart', () => {
       lastAngleRad = screenAngleRad(map, center(), handle.getLatLng());
-      notifyMapGestureStart();
+      interaction.gestureStart();
     });
     handle.on('drag', () => {
       if (lastAngleRad === null) return;
@@ -147,7 +152,7 @@
       lastAngleRad = nextAngleRad;
     });
     handle.on('dragend', () => {
-      notifyMapGestureEnd();
+      interaction.gestureEnd();
       lastAngleRad = null;
       snapToOrbit();
       syncPmEditHandles(layer);
@@ -163,71 +168,71 @@
     combiRotateHandles.set(featureId, handle);
   }
 
-  function syncSelectedLayerPm(map: L.Map, activeTool: DrawTool, activeSelectedId: string | null) {
-    let pmLayerCount = 0;
-    let selectedPmApplied = false;
+  function disableLayerEditing(pm: PmLayer) {
+    if (pm.layerDragEnabled?.()) pm.disableLayerDrag?.();
+    if (pm.rotateEnabled?.()) pm.disableRotate?.();
+    if (pm.enabled?.()) pm.disable();
+  }
+
+  function applySelectedEdit(map: L.Map, layer: L.Layer, feature: MapFeature, pm: PmLayer, config: SelectedEditConfig) {
+    pm.setOptions?.({
+      draggable: config.enableDrag,
+      allowEditing: config.allowEditing,
+      allowRotation: config.allowRotation,
+      ...(config.hideMiddleMarkers ? { hideMiddleMarkers: true } : {}),
+      ...(config.preventMarkerRemoval ? { preventMarkerRemoval: true } : {}),
+      ...(config.removeVertexOn ? { removeVertexOn: config.removeVertexOn } : {})
+    });
+
+    if (config.combiRotate) {
+      if (pm.rotateEnabled?.()) pm.disableRotate?.();
+      // enableLayerDrag() calls disable() — must run before enable() or vertex handles vanish
+      if (!pm.layerDragEnabled?.()) pm.enableLayerDrag?.();
+      if (config.enableVertexEdit && !pm.enabled?.()) pm.enable?.();
+      syncCombiRotateHandle(map, layer as L.Rectangle, feature.id, true);
+      return;
+    }
+
+    if (config.enableVertexEdit) {
+      pm.disableRotate?.();
+      // enableLayerDrag() calls disable() — must run before enable() or vertex handles vanish
+      if (!pm.layerDragEnabled?.()) pm.enableLayerDrag?.();
+      if (!pm.enabled?.()) pm.enable?.();
+      return;
+    }
+
+    // Point obstacle / landmark: drag only
+    if (pm.enabled?.()) pm.disable();
+    pm.disableRotate?.();
+    if (!pm.layerDragEnabled?.()) pm.enableLayerDrag?.();
+  }
+
+  function applyEditState(map: L.Map, activeTool: DrawTool, activeSelectedId: string | null) {
     map.eachLayer((layer) => {
       const feature = (layer as L.Layer & { feature?: MapFeature }).feature;
       const pm = (layer as L.Layer & { pm?: PmLayer }).pm;
       const pmIgnore = (layer as L.Layer & { options?: { pmIgnore?: boolean } }).options?.pmIgnore;
       if (!pm || !feature || pmIgnore) return;
-      pmLayerCount++;
 
-      if (activeTool === null && isDraggableFeature(feature)) {
-        const selected = feature.id === activeSelectedId;
-        const kind = feature.properties.kind;
-        const pmAny = pm as PmLayer & {
-          enabled?: () => boolean;
-          layerDragEnabled?: () => boolean;
-          rotateEnabled?: () => boolean;
-        };
-
-        if (selected) {
-          selectedPmApplied = true;
-          if (kind === 'combi') {
-            pm.setOptions?.({
-              draggable: true,
-              allowEditing: true,
-              allowRotation: true,
-              hideMiddleMarkers: true,
-              preventMarkerRemoval: true
-            });
-            if (pmAny.rotateEnabled?.()) pm.disableRotate?.();
-            // enableLayerDrag() calls disable() — must run before enable() or vertex handles vanish
-            if (!pmAny.layerDragEnabled?.()) pm.enableLayerDrag?.();
-            if (!pmAny.enabled?.()) pm.enable?.();
-            syncCombiRotateHandle(map, layer as L.Rectangle, feature.id, true);
-          } else if (kind === 'obstacle') {
-            const isPoint = feature.geometry.type === 'Point';
-            if (isPoint) {
-              pm.setOptions?.({ draggable: true, allowEditing: false, allowRotation: false });
-              if (pmAny.enabled?.()) pm.disable();
-              pm.disableRotate?.();
-              if (!pmAny.layerDragEnabled?.()) pm.enableLayerDrag?.();
-            } else {
-              pm.setOptions?.({ draggable: true, allowEditing: true, allowRotation: false });
-              pm.disableRotate?.();
-              if (!pmAny.layerDragEnabled?.()) pm.enableLayerDrag?.();
-              if (!pmAny.enabled?.()) pm.enable?.();
-            }
-          } else if (kind === 'landmark') {
-            pm.setOptions?.({ draggable: true, allowEditing: false, allowRotation: false });
-            if (pmAny.enabled?.()) pm.disable();
-            pm.disableRotate?.();
-            if (!pmAny.layerDragEnabled?.()) pm.enableLayerDrag?.();
-          }
-        } else {
-          if (kind === 'combi') removeCombiRotateHandle(map, feature.id);
-          if (pmAny.layerDragEnabled?.()) pm.disableLayerDrag?.();
-          if (pmAny.rotateEnabled?.()) pm.disableRotate?.();
-          if (pmAny.enabled?.()) pm.disable();
-        }
-      } else {
-        const pmAny = pm as PmLayer & { enabled?: () => boolean; layerDragEnabled?: () => boolean; rotateEnabled?: () => boolean };
-        if (pmAny.layerDragEnabled?.()) pm.disableLayerDrag?.();
-        if (pmAny.rotateEnabled?.()) pm.disableRotate?.();
-        if (pmAny.enabled?.()) pm.disable();
+      if (activeTool !== null || !isDraggableFeature(feature)) {
+        if (feature.properties.kind === 'combi') removeCombiRotateHandle(map, feature.id);
+        disableLayerEditing(pm);
+        return;
       }
+
+      const selected = feature.id === activeSelectedId;
+      if (!selected) {
+        if (feature.properties.kind === 'combi') removeCombiRotateHandle(map, feature.id);
+        disableLayerEditing(pm);
+        return;
+      }
+
+      const config = selectedEditConfig(feature);
+      if (!config) {
+        disableLayerEditing(pm);
+        return;
+      }
+      applySelectedEdit(map, layer, feature, pm, config);
     });
 
     for (const id of [...combiRotateHandles.keys()]) {
@@ -238,44 +243,87 @@
       map.dragging.enable();
     }
     syncMapFeatureSelection(map, activeSelectedId);
+    queueMicrotask(() => hintVertices(map, locale));
   }
 
-  function scheduleSync(map: L.Map, activeTool: DrawTool, activeSelectedId: string | null) {
-    pendingSync = { map, tool: activeTool, selectedId: activeSelectedId };
+  /** Middle markers grow into a plus on hover (CSS). Real vertices explain click-to-remove. */
+  function hintVertices(map: L.Map, activeLocale: Locale) {
+    const removeHint = t(activeLocale, 'design.vertex.remove');
+    map.eachLayer((layer) => {
+      if (!(layer instanceof L.Marker)) return;
+      const el = layer.getElement();
+      if (!el?.classList.contains('marker-icon') || el.classList.contains('marker-icon-middle')) return;
+      if (layer.getTooltip()?.getContent() === removeHint) return;
+      layer.unbindTooltip();
+      layer.bindTooltip(removeHint, {
+        direction: 'top',
+        offset: [0, -12],
+        opacity: 1,
+        className: 'vertex-hint'
+      });
+    });
+  }
+
+  function scheduleSync(map: L.Map) {
+    pendingMap = map;
     if (syncScheduled) return;
     syncScheduled = true;
     queueMicrotask(() => {
       syncScheduled = false;
-      const pending = pendingSync;
-      pendingSync = null;
-      if (pending) syncSelectedLayerPm(pending.map, pending.tool, pending.selectedId);
+      const pending = pendingMap;
+      pendingMap = null;
+      if (pending) applyEditState(pending, interaction.tool, interaction.selectedId);
     });
   }
 
+  // Draw tool: enable/disable draw & removal modes. Does not touch global edit mode.
   $effect(() => {
     const map = getMap();
-    const activeTool = tool;
-    const activeSelectedId = selectedId;
+    const tool = interaction.tool;
     if (!map) return;
 
     function handleCreate(e: { shape: string; layer: L.Layer }) {
       onCreate(e.shape as 'Marker' | 'Line' | 'Polygon' | 'Rectangle', e.layer);
       map!.pm.disableDraw();
     }
+
+    map.on('pm:create', handleCreate);
+    map.pm.disableDraw();
+    map.pm.disableGlobalRemovalMode();
+
+    if (tool === 'remove') {
+      map.pm.enableGlobalRemovalMode();
+    } else if (tool) {
+      map.pm.enableDraw(SHAPE_BY_TOOL[tool]);
+    }
+
+    return () => {
+      map.off('pm:create', handleCreate);
+      map.pm.disableDraw();
+      map.pm.disableGlobalRemovalMode();
+    };
+  });
+
+  // One-time listeners for the map instance — read tool/selectedId at event time.
+  $effect(() => {
+    const map = getMap();
+    if (!map) return;
+
+    map.pm.disableGlobalEditMode();
+    map.pm.disableGlobalRotateMode();
+
     function handleEdit(e: { layer?: L.Layer; target?: L.Layer }) {
       const layer = e.layer ?? e.target;
       const feature = (layer as (L.Layer & { feature?: MapFeature }) | undefined)?.feature;
       if (feature && layer) {
-        notifyMapGestureEnd();
+        interaction.gestureEnd();
         onEdit(feature, layer);
         // Defer until after Svelte rebuilds feature layers (useMapLayer $effect).
-        queueMicrotask(() => {
-          queueMicrotask(() => scheduleSync(map!, activeTool, activeSelectedId));
-        });
+        scheduleSync(map!);
       }
     }
     function handleRemove(e: { layer?: L.Layer; target?: L.Layer }) {
-      if (activeTool !== 'remove') return;
+      if (interaction.tool !== 'remove') return;
       const layer = e.layer ?? e.target;
       const feature = (layer as (L.Layer & { feature?: MapFeature }) | undefined)?.feature;
       if (feature) onRemove(feature);
@@ -288,52 +336,46 @@
     function attachLayerHandlers(layer: L.Layer) {
       if (!(layer as L.Layer & { feature?: MapFeature }).feature) return;
       layer.on('pm:drag', handleLayerDrag as L.LeafletEventHandlerFn);
-      layer.on('pm:dragend', handleEdit as L.LeafletEventHandlerFn);
-      layer.on('pm:markerdragend', handleEdit as L.LeafletEventHandlerFn);
-      layer.on('pm:rotateend', handleEdit as L.LeafletEventHandlerFn);
+      for (const event of GEOMETRY_COMMIT_EVENTS) {
+        layer.on(event, handleEdit as L.LeafletEventHandlerFn);
+      }
       layer.on('pm:remove', handleRemove as L.LeafletEventHandlerFn);
     }
     function detachLayerHandlers(layer: L.Layer) {
       layer.off('pm:drag', handleLayerDrag as L.LeafletEventHandlerFn);
-      layer.off('pm:dragend', handleEdit as L.LeafletEventHandlerFn);
-      layer.off('pm:markerdragend', handleEdit as L.LeafletEventHandlerFn);
-      layer.off('pm:rotateend', handleEdit as L.LeafletEventHandlerFn);
+      for (const event of GEOMETRY_COMMIT_EVENTS) {
+        layer.off(event, handleEdit as L.LeafletEventHandlerFn);
+      }
       layer.off('pm:remove', handleRemove as L.LeafletEventHandlerFn);
     }
     function handleLayerAdd(e: L.LayerEvent) {
       const layer = e.layer;
       if (!(layer as L.Layer & { feature?: MapFeature }).feature) return;
       attachLayerHandlers(layer);
-      scheduleSync(map!, activeTool, activeSelectedId);
+      scheduleSync(map!);
     }
     function handleLayerRemove(e: L.LayerEvent) {
       const feature = (e.layer as L.Layer & { feature?: MapFeature }).feature;
       if (feature?.properties.kind === 'combi') removeCombiRotateHandle(map!, feature.id);
     }
 
-    map.on('pm:create', handleCreate);
     map.eachLayer(attachLayerHandlers);
     map.on('layeradd', handleLayerAdd);
     map.on('layerremove', handleLayerRemove);
 
-    map.pm.disableDraw();
-    map.pm.disableGlobalEditMode();
-    map.pm.disableGlobalRotateMode();
-    map.pm.disableGlobalRemovalMode();
-
-    if (activeTool === 'remove') {
-      map.pm.enableGlobalRemovalMode();
-    } else if (activeTool) {
-      map.pm.enableDraw(SHAPE_BY_TOOL[activeTool]);
-    }
-
-    scheduleSync(map, activeTool, activeSelectedId);
-
     return () => {
-      map.off('pm:create', handleCreate);
       map.off('layeradd', handleLayerAdd);
       map.off('layerremove', handleLayerRemove);
       map.eachLayer(detachLayerHandlers);
     };
+  });
+
+  // Edit-state: selection + tool drive which layers are draggable/editable.
+  $effect(() => {
+    const map = getMap();
+    const tool = interaction.tool;
+    const selectedId = interaction.selectedId;
+    if (!map) return;
+    applyEditState(map, tool, selectedId);
   });
 </script>

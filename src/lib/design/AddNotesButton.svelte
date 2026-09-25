@@ -7,7 +7,6 @@
     TooltipTrigger
   } from '$lib/components/ui/tooltip';
   import { t, type Locale } from '$lib/i18n';
-  import PlusIcon from '@lucide/svelte/icons/plus';
   import StickyNoteIcon from '@lucide/svelte/icons/sticky-note';
 
   let {
@@ -29,12 +28,15 @@
       <TooltipTrigger>
         {#snippet child({ props })}
           <Button
+            {...props}
             type="button"
             variant="ghost"
             size="icon"
             aria-label={label}
-            {onclick}
-            {...props}
+            onclick={(event: MouseEvent) => {
+              if (typeof props.onclick === 'function') props.onclick(event);
+              onclick();
+            }}
           >
             <StickyNoteIcon class="size-4" />
           </Button>
@@ -51,7 +53,7 @@
     class="-ml-2 self-start text-muted-foreground hover:text-foreground"
     {onclick}
   >
-    <PlusIcon class="size-3.5" />
+    <StickyNoteIcon class="size-3.5" />
     {label}
   </Button>
 {/if}

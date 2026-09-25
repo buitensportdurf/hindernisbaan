@@ -2,34 +2,29 @@
   import { getContext, untrack } from 'svelte';
   import L from 'leaflet';
   import type { CombiFeature } from '$lib/data/types';
+  import type { InteractionController } from '$lib/interaction/controller.svelte';
   import { useMapLayer } from './useMapLayer.svelte';
-  import { FILLED_PATH_STYLE, COMBI_LABEL_ZOOM, bindFilledPathTooltip, attachFeatureGestures, syncMapFeatureSelection } from './mapUtils';
+  import { FILLED_PATH_STYLE, COMBI_LABEL_ZOOM, syncFilledPathTooltip } from './mapUtils';
+  import { bindFeatureInteraction } from './featureGestures';
 
   let {
     features,
-    selectedId,
-    onSelect,
-    onOpenDetails,
-    gesturesEnabled,
+    interaction,
     labelsEnabled = true
   }: {
     features: CombiFeature[];
-    selectedId: string | null;
-    onSelect: (id: string) => void;
-    onOpenDetails?: (id: string) => void;
-    gesturesEnabled?: () => boolean;
+    interaction: InteractionController;
     labelsEnabled?: boolean;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
 
+  // Selection only toggles a CSS class — must not tear down / rebuild layers.
   $effect(() => {
     const map = getMap();
-    const id = selectedId;
-    void features;
+    const id = interaction.selectedId;
     if (!map) return;
     queueMicrotask(() => {
-      syncMapFeatureSelection(map, id);
       map.eachLayer((layer) => {
         if (!(layer instanceof L.Marker)) return;
         const feature = (layer as L.Layer & { feature?: CombiFeature }).feature;
@@ -78,10 +73,33 @@
   // Lower = count survives further zoom-out; one Leaflet zoom step halves the on-screen size.
   const COUNT_FIT_THRESHOLD = 16;
 
+  const geometryKey = $derived(
+    features
+      .map(
+        (f) =>
+          `${f.id}:${JSON.stringify(f.geometry.coordinates)}:${f.properties.members.length}`
+      )
+      .join('\n')
+  );
+
+  $effect(() => {
+    const names = features.map((f) => [f.id, f.properties.name] as const);
+    const zoom = labelsEnabled ? COMBI_LABEL_ZOOM : undefined;
+    const map = getMap();
+    if (!map) return;
+    untrack(() => {
+      map.eachLayer((layer) => {
+        const feature = (layer as L.Layer & { feature?: CombiFeature }).feature;
+        const pmIgnore = (layer as L.Layer & { options?: { pmIgnore?: boolean } }).options?.pmIgnore;
+        if (!feature || pmIgnore || !(layer instanceof L.Rectangle)) return;
+        const name = names.find(([id]) => id === feature.id)?.[1];
+        if (name === undefined) return;
+        syncFilledPathTooltip(layer, name, zoom, 1);
+      });
+    });
+  });
+
   useMapLayer((group) => {
-    // Read without tracking: selection only toggles a CSS class (see the $effect
-    // above), it must not tear down and rebuild every combi tooltip on the map.
-    const activeSelectedId = untrack(() => selectedId);
     for (const f of features) {
       const latlngs = f.geometry.coordinates.map((ring) =>
         ring.map(([lng, lat]) => [lat, lng] as [number, number])
@@ -100,10 +118,7 @@
         ? L.marker(rectangle.getBounds().getCenter(), {
             icon: L.divIcon({
               html: String(count),
-              className:
-                activeSelectedId !== null && activeSelectedId !== f.id
-                  ? 'combi-count combi-count--selection-hidden'
-                  : 'combi-count',
+              className: 'combi-count',
               iconSize: [24, 24],
               iconAnchor: [12, 12]
             }),
@@ -137,16 +152,14 @@
         path?.setAttribute('d', roundedPolyPath(parts, r));
         lastMinEdge = minEdge;
         syncCountVisibility();
+        const center = rectangle.getBounds().getCenter();
+        if (countMarker && !countMarker.getLatLng().equals(center)) countMarker.setLatLng(center);
       };
 
       (rectangle as L.Layer & { feature?: CombiFeature }).feature = f;
-      attachFeatureGestures(rectangle, f.id, {
-        onSelect,
-        onOpenDetails,
-        enabled: gesturesEnabled
-      });
+      bindFeatureInteraction(rectangle, f.id, interaction);
       group.addLayer(rectangle);
-      bindFilledPathTooltip(rectangle, f.properties.name, labelsEnabled ? COMBI_LABEL_ZOOM : undefined, 1);
+      syncFilledPathTooltip(rectangle, f.properties.name, labelsEnabled ? COMBI_LABEL_ZOOM : undefined, 1);
 
       if (countMarker) {
         group.addLayer(countMarker);
@@ -154,5 +167,5 @@
         syncCountVisibility();
       }
     }
-  });
+  }, () => geometryKey);
 </script>

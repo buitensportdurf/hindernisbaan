@@ -1,11 +1,11 @@
 <script lang="ts">
   import { focusById } from '$lib/utils';
   import {
-    Drawer,
-    DrawerContent,
-    DrawerTitle,
-    DrawerFooter
-  } from '$lib/components/ui/drawer';
+    Sheet,
+    SheetContent,
+    SheetTitle,
+    SheetFooter
+  } from '$lib/components/ui/sheet';
   import { Label } from '$lib/components/ui/label';
   import { Input } from '$lib/components/ui/input';
   import { Textarea } from '$lib/components/ui/textarea';
@@ -19,11 +19,12 @@
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
   let {
-    open = $bindable(false),
+    open = false,
     feature,
     draft,
     onRequestDelete,
     onClose,
+    onOpenChange,
     locale
   }: {
     open?: boolean;
@@ -31,6 +32,7 @@
     draft: DraftState;
     onRequestDelete: (id: string) => void;
     onClose: () => void;
+    onOpenChange?: (open: boolean) => void;
     locale: Locale;
   } = $props();
 
@@ -114,17 +116,25 @@
   }
 </script>
 
-<Drawer bind:open onOpenChange={(v) => { if (!v) onClose(); }}>
+<Sheet
+  {open}
+  onOpenChange={(v) => {
+    onOpenChange?.(v);
+    if (!v) onClose();
+  }}
+>
   {#if feature}
-    <DrawerContent
+    <SheetContent
+      side="bottom"
+      class="gap-0 p-0"
       onOpenAutoFocus={(e) => {
         e.preventDefault();
         focusById('feature-name');
       }}
     >
-      <DrawerTitle class="sr-only">
+      <SheetTitle class="sr-only">
         {feature.properties.name || t(locale, 'design.editor.untitled')}
-      </DrawerTitle>
+      </SheetTitle>
 
       <div class="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-4 pt-4">
         {#if feature.properties.kind === 'landmark'}
@@ -168,13 +178,7 @@
               onblur={onNotesBlur}
             />
             {#if (feature.properties.notes ?? '').trim()}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                class="self-start px-0 text-muted-foreground hover:text-foreground"
-                onclick={removeNotes}
-              >
+              <Button type="button" variant="ghost" size="sm" class="self-start" onclick={removeNotes}>
                 {t(locale, 'design.editor.notes.remove')}
               </Button>
             {/if}
@@ -217,7 +221,7 @@
                       type="button"
                       variant="ghost"
                       size="sm"
-                      class="self-start px-0 text-muted-foreground hover:text-foreground"
+                      class="self-start"
                       onclick={() => removeMemberNotes(i)}
                     >
                       {t(locale, 'design.editor.notes.remove')}
@@ -239,12 +243,12 @@
         {/if}
       </div>
 
-      <DrawerFooter class="border-t pt-4">
+      <SheetFooter class="px-5 pb-5">
         <Button class="w-full" variant="destructive" onclick={() => onRequestDelete(feature!.id)}>
           <Trash2Icon class="size-4" />
           {t(locale, 'design.editor.delete')}
         </Button>
-      </DrawerFooter>
-    </DrawerContent>
+      </SheetFooter>
+    </SheetContent>
   {/if}
-</Drawer>
+</Sheet>

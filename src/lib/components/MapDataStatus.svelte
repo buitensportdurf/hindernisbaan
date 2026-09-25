@@ -2,6 +2,7 @@
   import type { AppState } from '$lib/state/app.svelte';
   import type { DraftState } from '$lib/state/draft.svelte';
   import { OBSTACLES_URL, parseFeatures, LoadError } from '$lib/data/loader';
+  import { diffFeatures } from '$lib/design/draftDiff';
   import { Button } from '$lib/components/ui/button';
   import {
     Tooltip,
@@ -40,6 +41,8 @@
       : null
   );
 
+  const isLocalDraft = $derived(!!draft?.hasStoredDraft);
+
   const dialogData = $derived(
     draft
       ? {
@@ -52,8 +55,20 @@
       : liveCollection
   );
 
+  const courseLabel = $derived(
+    draft
+      ? `${draft.club} · v${draft.version}`
+      : liveCollection
+        ? `${liveCollection.club} · v${liveCollection.version}`
+        : null
+  );
+
   function openDialog() {
     if (dialogData) open = true;
+  }
+
+  function openDiscard() {
+    if (liveCollection) discardOpen = true;
   }
 
   function handleDownload() {
@@ -72,7 +87,8 @@
     if (draft) {
       try {
         const parsed = await parseFeatures(text);
-        draft.discard(parsed);
+        draft.replaceWith(parsed);
+        app.bumpDataEpoch();
       } catch (err) {
         toast.error(err instanceof LoadError ? err.message : 'Invalid file');
       }
@@ -82,82 +98,82 @@
   }
 </script>
 
-{#if draft}
-  <Button
-    variant="link"
-    class="h-auto w-full min-w-0 justify-start p-0 text-xs"
-    onclick={openDialog}
-  >
-    <span class="truncate">{draft.club} · v{draft.version}</span>
-  </Button>
-
-  <div class="flex w-full min-w-0 items-center gap-1">
+{#if courseLabel}
+  <div class="flex min-w-0 items-start">
     <Button
-      variant="link"
-      class="h-auto min-w-0 flex-1 justify-start gap-1.5 p-0 text-xs"
+      type="button"
+      variant="ghost"
+      size="sm"
+      class="h-auto min-w-0 flex-1 flex-col items-start gap-0 rounded-sm px-1.5 py-0 leading-tight -ml-1.5"
       onclick={openDialog}
-      title={draft.isValid ? undefined : (draft.validationErrors ?? undefined)}
+      title={isLocalDraft && draft && !draft.isValid ? (draft.validationErrors ?? undefined) : undefined}
     >
-      <span
-        class="size-1.5 shrink-0 rounded-full {draft.isValid ? 'bg-emerald-500' : 'bg-destructive'}"
-        aria-hidden="true"
-      ></span>
-      <span class="truncate {draft.isValid ? 'text-muted-foreground' : 'font-medium text-destructive'}">
-        {draft.isValid ? t(app.locale, 'draft.status.saved') : t(app.locale, 'draft.status.invalid')}
-      </span>
+      <span class="w-full truncate text-left text-sm text-primary">{courseLabel}</span>
+      {#if isLocalDraft && draft}
+        <span
+          class="w-full truncate text-left text-xs font-normal {draft.isValid
+            ? 'text-muted-foreground'
+            : 'text-destructive'}"
+        >
+          {draft.isValid ? t(app.locale, 'draft.status.saved') : t(app.locale, 'draft.status.invalid')}
+        </span>
+      {/if}
     </Button>
 
-    <TooltipProvider delayDuration={300}>
-      <Tooltip>
-        <TooltipTrigger>
-          {#snippet child({ props })}
-            <Button
-              variant="ghost"
-              size="icon"
-              class="size-6 shrink-0 text-muted-foreground"
-              onclick={() => (discardOpen = true)}
-              {...props}
-            >
-              <Trash2Icon class="size-3.5" />
-            </Button>
-          {/snippet}
-        </TooltipTrigger>
-        <TooltipContent side="top">{t(app.locale, 'draft.discard')}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    {#if isLocalDraft && draft}
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                type="button"
+                variant="ghost"
+                size="icon"
+                class="rounded-sm"
+                aria-label={t(app.locale, 'draft.discard')}
+                onclick={(event: MouseEvent) => {
+                  if (typeof props.onclick === 'function') props.onclick(event);
+                  openDiscard();
+                }}
+              >
+                <Trash2Icon />
+              </Button>
+            {/snippet}
+          </TooltipTrigger>
+          <TooltipContent side="top">{t(app.locale, 'draft.discard')}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    {/if}
   </div>
+{/if}
 
-  {#if liveCollection}
-    <DiscardDraftDialog
-      bind:open={discardOpen}
-      locale={app.locale}
-      onConfirm={() => {
-        draft.discard(liveCollection);
-        discardOpen = false;
-        open = false;
-        toast.success(t(app.locale, 'draft.toast.discarded'));
-      }}
-    />
-  {/if}
-{:else if liveCollection}
-  <Button
-    variant="link"
-    class="h-auto w-full min-w-0 justify-start p-0 text-xs"
-    onclick={openDialog}
-  >
-    <span class="truncate">{liveCollection.club} · v{liveCollection.version}</span>
-  </Button>
+{#if draft && liveCollection}
+  <DiscardDraftDialog
+    bind:open={discardOpen}
+    locale={app.locale}
+    onConfirm={() => {
+      draft.discard(liveCollection);
+      discardOpen = false;
+      open = false;
+      toast.success(t(app.locale, 'draft.toast.discarded'));
+    }}
+  />
 {/if}
 
 {#if open && dialogData}
   <MapDataDialog
     locale={app.locale}
     data={dialogData}
-    sourceUrl={draft ? undefined : OBSTACLES_URL}
+    sourceUrl={isLocalDraft ? undefined : OBSTACLES_URL}
     validationErrors={draft?.validationErrors}
+    isDraft={isLocalDraft}
+    changes={isLocalDraft && liveCollection
+      ? diffFeatures(liveCollection.features, draft!.features)
+      : undefined}
     onDownload={draft ? handleDownload : undefined}
     onImport={handleImport}
-    onRevertDraft={draft && liveCollection ? () => (discardOpen = true) : undefined}
+    onRevertDraft={isLocalDraft && liveCollection ? openDiscard : undefined}
     onClose={() => (open = false)}
   />
 {/if}
