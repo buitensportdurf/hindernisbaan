@@ -1,0 +1,7 @@
+# Revalidate the course on every request. Apache still sends ETag and
+# Last-Modified, so an unchanged file is a 304 and a new deploy is fetched.
+<IfModule mod_headers.c>
+  <Files "obstacles.geojson">
+    Header set Cache-Control "no-cache"
+  </Files>
+</IfModule>

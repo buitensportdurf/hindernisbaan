@@ -37,7 +37,8 @@ export async function fetchFeatures(
 ): Promise<FeatureCollection> {
   let data: unknown;
   try {
-    const res = await fetch(url);
+    // Revalidate a cached course so a newly deployed file replaces it.
+    const res = await fetch(url, { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
     data = await res.json();
   } catch (err) {

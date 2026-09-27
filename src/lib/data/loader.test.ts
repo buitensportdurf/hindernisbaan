@@ -74,6 +74,7 @@ describe('fetchFeatures', () => {
     );
     const result = await fetchFeatures('/data/obstacles.geojson');
     expect(result.features).toHaveLength(1);
+    expect(fetch).toHaveBeenCalledWith('/data/obstacles.geojson', { cache: 'no-cache' });
   });
 
   it('throws LoadError on HTTP error', async () => {
