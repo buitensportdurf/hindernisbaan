@@ -1,7 +1,7 @@
 {
   "type": "FeatureCollection",
   "club": "Buitensport Durf",
-  "version": "2026-09-25",
+  "version": "2026-09-28",
   "logo": "https://www.buitensportdurf.nl/wp-content/uploads/2020/09/icon-150x150.png",
   "features": [
     {
@@ -161,8 +161,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          4.368452,
-          52.029779
+          4.368456,
+          52.029786
         ]
       },
       "properties": {
@@ -176,12 +176,12 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          4.368369,
-          52.029763
+          4.368393,
+          52.029744
         ]
       },
       "properties": {
-        "name": "BWO rekhof & PVC klimbuis",
+        "name": "Borstwaartsom stangen",
         "kind": "obstacle"
       }
     },
@@ -223,7 +223,7 @@
             "name": "Spaanse ruiter"
           },
           {
-            "name": "Apenhang"
+            "name": "apenhang"
           }
         ]
       }
@@ -263,43 +263,43 @@
         "kind": "combi",
         "members": [
           {
-            "name": "lage swingovers"
+            "name": "Lage swingovers"
           },
           {
-            "name": "lianen langs bomen"
+            "name": "Lianen langs bomen"
           },
           {
-            "name": "brandweerslang apenhang"
+            "name": "Brandweerslang apenhang"
           },
           {
-            "name": "beltrums lusjes"
+            "name": "Beltrums lusjes"
           },
           {
-            "name": "brandweerslang apenhang 2x"
+            "name": "Brandweerslang apenhang 2x"
           },
           {
-            "name": "apenhang met schot / plaat"
+            "name": "Apenhang met schot / plaat"
           },
           {
-            "name": "moeilijk swingovers"
+            "name": "Moeilijk swingovers"
           },
           {
-            "name": "autobanden apenhang"
+            "name": "Autobanden apenhang"
           },
           {
-            "name": "selfmade apenhang"
+            "name": "Selfmade apenhang"
           },
           {
-            "name": "schuiflussen"
+            "name": "Schuiflussen"
           },
           {
-            "name": "palentarzan"
+            "name": "Palentarzan"
           },
           {
-            "name": "monkeybar Xtra"
+            "name": "Monkeybar Xtra"
           },
           {
-            "name": "pegboard en ringpegs"
+            "name": "Pegboard en ringpegs"
           }
         ]
       }
@@ -327,24 +327,24 @@
         "coordinates": [
           [
             [
-              4.369498,
-              52.028779
+              4.369648,
+              52.028647
             ],
             [
-              4.369312,
-              52.028939
+              4.369571,
+              52.028614
             ],
             [
               4.369237,
-              52.028906
+              52.028908
             ],
             [
-              4.369423,
-              52.028746
+              4.369314,
+              52.028941
             ],
             [
-              4.369498,
-              52.028779
+              4.369648,
+              52.028647
             ]
           ]
         ]
@@ -354,82 +354,30 @@
         "kind": "combi",
         "members": [
           {
-            "name": "kabouter tarzan"
+            "name": "Kabouter tarzan"
           },
           {
-            "name": "balpol lianen"
+            "name": "Balpol lianen"
           },
           {
-            "name": "ruiter"
+            "name": "Friesche ruiters"
           },
           {
-            "name": "staplussen"
+            "name": "Staplussen"
+          },
+          {
+            "name": "Lianen"
+          },
+          {
+            "name": "Hoge swingovers"
+          },
+          {
+            "name": "Schuine daknet met oversteek"
+          },
+          {
+            "name": "Boomdoorsteek apenhang"
           }
         ]
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "ea11dffe-4aa1-48d1-b865-a837c37287c2",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              4.369596,
-              52.028598
-            ],
-            [
-              4.369508,
-              52.028674
-            ],
-            [
-              4.369578,
-              52.028705
-            ],
-            [
-              4.369666,
-              52.028629
-            ],
-            [
-              4.369596,
-              52.028598
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "name": "Schuine Net Combi",
-        "kind": "combi",
-        "members": [
-          {
-            "name": "daknetten met oversteek"
-          },
-          {
-            "name": "hoge SO’s"
-          }
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "d678d8b8-0b54-4f70-ba87-4df55c7124b8",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            4.369438,
-            52.028744
-          ],
-          [
-            4.369506,
-            52.02868
-          ]
-        ]
-      },
-      "properties": {
-        "name": "Boomdoorsteek apenhang",
-        "kind": "obstacle"
       }
     },
     {
@@ -525,31 +473,25 @@
         "kind": "combi",
         "members": [
           {
-            "name": "triangels"
+            "name": "Triangels"
           },
           {
-            "name": "rekstokken"
+            "name": "Rekstokken"
           },
           {
-            "name": "kartbandjes"
+            "name": "Kartbandjes"
           },
           {
-            "name": "rijplaten"
+            "name": "Rijplaten"
           },
           {
             "name": "Beltrums lusje"
           },
           {
-            "name": "pakplanken"
+            "name": "Pakplanken"
           },
           {
-            "name": "autobanden SO"
-          },
-          {
-            "name": "verticaal net"
-          },
-          {
-            "name": "Elastiek SO"
+            "name": "Autobanden SO"
           }
         ]
       }
@@ -701,19 +643,19 @@
         "kind": "combi",
         "members": [
           {
-            "name": "korte touwtjes"
+            "name": "Korte touwtjes"
           },
           {
-            "name": "monkeybars"
+            "name": "Monkeybars"
           },
           {
-            "name": "staplussen"
+            "name": "Sstaplussen"
           },
           {
-            "name": "lianen"
+            "name": "Lianen"
           },
           {
-            "name": "zwaailussen"
+            "name": "Zwaailussen"
           }
         ]
       }
@@ -849,7 +791,7 @@
         ]
       },
       "properties": {
-        "name": "\"Lange Mark\" sloot apenhang",
+        "name": "\"Lange Mark\"apenhang over sloot",
         "kind": "obstacle"
       }
     },
@@ -1067,7 +1009,7 @@
         ]
       },
       "properties": {
-        "name": "Swingovers",
+        "name": "Dikke balk swingover",
         "kind": "obstacle"
       }
     },
@@ -1079,24 +1021,24 @@
         "coordinates": [
           [
             [
-              4.371372,
-              52.029695
+              4.371375,
+              52.029696
             ],
             [
-              4.371323,
-              52.029745
+              4.371322,
+              52.029744
             ],
             [
-              4.371397,
-              52.029773
+              4.371394,
+              52.029774
             ],
             [
-              4.371446,
-              52.029723
+              4.371447,
+              52.029726
             ],
             [
-              4.371372,
-              52.029695
+              4.371375,
+              52.029696
             ]
           ]
         ]
@@ -1106,39 +1048,12 @@
         "kind": "combi",
         "members": [
           {
-            "name": "lianen"
+            "name": "Lianen"
           },
           {
-            "name": "entertouw"
-          },
-          {
-            "name": "gekke SO's"
-          },
-          {
-            "name": "huilebalk SO's"
+            "name": "Entertouw"
           }
         ]
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "fc3fc235-e0db-4b2a-a141-7d7817905f39",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            4.369568,
-            52.028705
-          ],
-          [
-            4.369497,
-            52.028772
-          ]
-        ]
-      },
-      "properties": {
-        "name": "Lianen",
-        "kind": "obstacle"
       }
     },
     {
@@ -1176,6 +1091,131 @@
         "name": "Elastiek swingovers",
         "kind": "obstacle",
         "notes": "Paar naast elkaar dacht ik"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "601ef2a1-3fa1-4c88-a7a5-db75deabde81",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.368388,
+          52.029783
+        ]
+      },
+      "properties": {
+        "name": "PVC klimbuis",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "d7d737ab-2137-4af1-816e-14fbd9621927",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.371454,
+          52.029707
+        ]
+      },
+      "properties": {
+        "name": "Huilebalk swingovers",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "58cc4378-bb5d-4b27-a384-51877287444c",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.371412,
+          52.029687
+        ]
+      },
+      "properties": {
+        "name": "Zwevende balk swingovers",
+        "kind": "obstacle"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "649d7847-d3b2-42e9-a7a7-06ab8deeb8db",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.369136,
+          52.029683
+        ]
+      },
+      "properties": {
+        "name": "Veld A",
+        "kind": "landmark",
+        "icon": "flag"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ac4453ac-c6a4-47b5-abe0-3e9ca3db1187",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.37015,
+          52.028914
+        ]
+      },
+      "properties": {
+        "name": "Veld B",
+        "kind": "landmark",
+        "icon": "flag"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "de992c9f-5b12-4e98-8d6a-3f2a126876df",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.371024,
+          52.029304
+        ]
+      },
+      "properties": {
+        "name": "Veld C",
+        "kind": "landmark",
+        "icon": "flag"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "c87577a8-7f9c-4dfb-ad28-ae0ce31c9dde",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.370622,
+          52.03034
+        ]
+      },
+      "properties": {
+        "name": "Veld D",
+        "kind": "landmark",
+        "icon": "flag"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "a0b144e1-dcd5-4734-91e3-336a57d57beb",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          4.372264,
+          52.029845
+        ]
+      },
+      "properties": {
+        "name": "Veld E",
+        "kind": "landmark",
+        "icon": "flag"
       }
     }
   ]

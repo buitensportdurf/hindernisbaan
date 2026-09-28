@@ -9,7 +9,7 @@ import { createDraftState } from '$lib/state/draft.svelte';
 import type { FeatureCollection } from '$lib/data/types';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const fixturePath = join(here, '../data/fixtures/obstacles-2026-09-25.geojson');
+const fixturePath = join(here, '../data/fixtures/obstacles-2026-09-28.geojson');
 const publishedPath = join(here, '../../../static/data/obstacles.geojson');
 
 beforeEach(() => {
@@ -73,12 +73,12 @@ describe('MapDataStatus import', () => {
 
     const draft = createDraftState();
     draft.loadOrInit(official);
-    expect(draft.features).toHaveLength(43);
+    expect(draft.features).toHaveLength(48);
 
     const epochBefore = app.dataEpoch;
     render(MapDataStatus, { app, draft, onImport: vi.fn() });
 
-    await fireEvent.click(screen.getByRole('button', { name: /Buitensport Durf · v2026-09-25/ }));
+    await fireEvent.click(screen.getByRole('button', { name: /Buitensport Durf · v2026-09-28/ }));
 
     const dialog = screen.getByRole('dialog');
     const input = dialog.querySelector('input[type="file"]');
@@ -87,7 +87,7 @@ describe('MapDataStatus import', () => {
     await fireEvent.click(input as HTMLInputElement);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    const file = new File([fixtureText], 'obstacles-2026-09-25.geojson', {
+    const file = new File([fixtureText], 'obstacles-2026-09-28.geojson', {
       type: 'application/geo+json'
     });
     // jsdom File has no .text(); MapDataDialog awaits file.text().
@@ -97,16 +97,16 @@ describe('MapDataStatus import', () => {
     await fireEvent.change(input as HTMLInputElement, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(draft.features).toHaveLength(43);
+      expect(draft.features).toHaveLength(48);
     });
-    expect(draft.version).toBe('2026-09-25');
+    expect(draft.version).toBe('2026-09-28');
     expect(draft.hasStoredDraft).toBe(true);
     expect(app.dataEpoch).toBe(epochBefore + 1);
-    expect(draft.features.find((f) => f.id === 'fc3fc235-e0db-4b2a-a141-7d7817905f39')?.properties.name).toBe(
-      'Lianen'
+    expect(draft.features.find((f) => f.id === '601ef2a1-3fa1-4c88-a7a5-db75deabde81')?.properties.name).toBe(
+      'PVC klimbuis'
     );
 
-    await fireEvent.click(screen.getByRole('button', { name: /Buitensport Durf · v2026-09-25/ }));
+    await fireEvent.click(screen.getByRole('button', { name: /Buitensport Durf · v2026-09-28/ }));
 
     expect(screen.getByText('Changes from the published course')).toBeInTheDocument();
     expect(screen.getByText('No changes from the published course')).toBeInTheDocument();

@@ -11,7 +11,7 @@ import type { FeatureCollection, MapFeature } from '$lib/data/types';
 const DRAFT_KEY = 'durf:draft';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const fixturePath = join(here, '../data/fixtures/obstacles-2026-09-25.geojson');
+const fixturePath = join(here, '../data/fixtures/obstacles-2026-09-28.geojson');
 const publishedPath = join(here, '../../../static/data/obstacles.geojson');
 
 const publishedFeature: MapFeature = {
@@ -145,26 +145,26 @@ describe('createDraftState.discard', () => {
 });
 
 describe('createDraftState.replaceWith', () => {
-  it('loads the published 2026-09-25 course as a persisted draft', async () => {
+  it('loads the published 2026-09-28 course as a persisted draft', async () => {
     const official = JSON.parse(readFileSync(publishedPath, 'utf8')) as FeatureCollection;
     const fixtureText = readFileSync(fixturePath, 'utf8');
     const imported = await parseFeatures(fixtureText);
 
     const draft = createDraftState();
     draft.loadOrInit(official);
-    expect(draft.features).toHaveLength(43);
+    expect(draft.features).toHaveLength(48);
     expect(draft.hasStoredDraft).toBe(false);
 
     draft.replaceWith(imported);
 
-    expect(draft.features).toHaveLength(43);
-    expect(draft.version).toBe('2026-09-25');
+    expect(draft.features).toHaveLength(48);
+    expect(draft.version).toBe('2026-09-28');
     expect(draft.club).toBe('Buitensport Durf');
     expect(draft.isValid).toBe(true);
     expect(draft.hasStoredDraft).toBe(true);
     expect(localStorage.getItem(DRAFT_KEY)).not.toBeNull();
-    expect(draft.features.find((f) => f.id === 'fc3fc235-e0db-4b2a-a141-7d7817905f39')?.properties.name).toBe(
-      'Lianen'
+    expect(draft.features.find((f) => f.id === '601ef2a1-3fa1-4c88-a7a5-db75deabde81')?.properties.name).toBe(
+      'PVC klimbuis'
     );
     expect(diffFeatures(official.features, draft.features)).toEqual([]);
   });
@@ -176,7 +176,7 @@ describe('createDraftState.replaceWith', () => {
 
     draft.replaceWith(imported);
     expect(draft.hasStoredDraft).toBe(true);
-    expect(localStorage.getItem(DRAFT_KEY)).toContain('"version":"2026-09-25"');
+    expect(localStorage.getItem(DRAFT_KEY)).toContain('"version":"2026-09-28"');
 
     draft.discard(published);
     expect(draft.hasStoredDraft).toBe(false);
