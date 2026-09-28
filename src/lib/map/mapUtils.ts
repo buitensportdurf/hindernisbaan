@@ -265,8 +265,16 @@ export function tooltipAnchor(layer: L.Layer): L.LatLng {
   return L.latLng(0, 0);
 }
 
+/** Label bubble HTML: the name, the fault on its own line, or both. Empty when neither. */
+function filledPathTooltipHtml(name: string, labelTier: number, fault?: string): string {
+  if (!name && !fault) return '';
+  const bubbleClass = labelTier > 0 ? 'tooltip-bubble tooltip-bubble--strong' : 'tooltip-bubble';
+  const faultHtml = fault ? `<span class="tooltip-fault">${escapeHtml(fault)}</span>` : '';
+  return `<span class="${bubbleClass}">${escapeHtml(name)}${faultHtml}</span>`;
+}
+
 /**
- * Binds a Leaflet tooltip showing the filled path feature name.
+ * Binds a Leaflet tooltip showing the filled path feature name, plus its fault if any.
  * Hover-only by default; with `permanentAtZoom` set, the tooltip becomes an
  * always-visible label once the map zoom reaches that level. `labelTier` ranks
  * labels for radial placement — higher tiers claim their spot first.
@@ -275,12 +283,11 @@ export function bindFilledPathTooltip(
   layer: L.Layer,
   text: string,
   permanentAtZoom?: number,
-  labelTier = 0
+  labelTier = 0,
+  fault?: string
 ): void {
-  const name = text.trim();
-  if (!name) return;
-  const bubbleClass = labelTier > 0 ? 'tooltip-bubble tooltip-bubble--strong' : 'tooltip-bubble';
-  const html = `<span class="${bubbleClass}">${escapeHtml(name)}</span>`;
+  const html = filledPathTooltipHtml(text.trim(), labelTier, fault);
+  if (!html) return;
   const entry: LabelEntry = { layer, tier: labelTier };
 
   const getMap = () => (layer as L.Layer & { _map?: L.Map })._map;
@@ -384,25 +391,25 @@ export function bindFilledPathTooltip(
   if ((layer as L.Layer & { _map?: L.Map })._map) watchZoom();
 }
 
-/** Update a feature label in place. Binds one if the name just became non-empty. */
+/** Update a feature label in place. Binds one if the name or fault just became non-empty. */
 export function syncFilledPathTooltip(
   layer: L.Layer,
   text: string,
   permanentAtZoom?: number,
-  labelTier = 0
+  labelTier = 0,
+  fault?: string
 ): void {
   const name = text.trim();
+  const html = filledPathTooltipHtml(name, labelTier, fault);
   const tooltip = layer.getTooltip();
-  if (!name) {
+  if (!html) {
     if (tooltip) layer.unbindTooltip();
     return;
   }
   if (!tooltip) {
-    bindFilledPathTooltip(layer, name, permanentAtZoom, labelTier);
+    bindFilledPathTooltip(layer, name, permanentAtZoom, labelTier, fault);
     return;
   }
-  const bubbleClass = labelTier > 0 ? 'tooltip-bubble tooltip-bubble--strong' : 'tooltip-bubble';
-  const html = `<span class="${bubbleClass}">${escapeHtml(name)}</span>`;
   // Skip DOM writes when the label is unchanged — setContent + placement on every
   // keystroke for every feature is what made rename feel like a full map refresh.
   if (tooltip.getContent() === html) return;
@@ -418,6 +425,12 @@ export function isGeomanHandleTarget(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return false;
   if (target.closest('.landmark-marker, .landmark-pill, .combi-count')) return false;
   return !!target.closest('.marker-icon, .marker-icon-middle, .leaflet-pm-rotation, .combi-rotate-handle');
+}
+
+/** Toggle the `.is-invalid` CSS class on a layer's rendered element. */
+export function setLayerInvalid(layer: L.Layer, invalid: boolean): void {
+  const el = (layer as L.Path & { getElement?: () => HTMLElement | SVGElement | null }).getElement?.();
+  if (el) el.classList.toggle('is-invalid', invalid);
 }
 
 /** Toggle the `.selected` CSS class on a layer's rendered element. */

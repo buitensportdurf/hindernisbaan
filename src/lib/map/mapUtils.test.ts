@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import L from 'leaflet';
-import { bindFilledPathTooltip, placeLabels, syncMapFeatureSelection, tooltipAnchor } from './mapUtils';
+import {
+  bindFilledPathTooltip,
+  placeLabels,
+  syncFilledPathTooltip,
+  syncMapFeatureSelection,
+  tooltipAnchor
+} from './mapUtils';
 
 /**
  * jsdom has no layout engine, so every element reports a 0x0 box by default.
@@ -130,6 +136,48 @@ describe('bindFilledPathTooltip — click no longer strands a hover tooltip at t
 
     expect(line.getTooltip()!.isOpen()).toBe(true);
     expect(line.getTooltip()!.getLatLng()).toEqual(tooltipAnchor(line));
+  });
+});
+
+describe('filled path tooltip — fault text', () => {
+  function openBubble(layer: L.CircleMarker): HTMLElement | null {
+    layer.fire('mouseover', { latlng: layer.getLatLng() });
+    return layer.getTooltip()?.getElement()?.querySelector('.tooltip-bubble') ?? null;
+  }
+
+  it('a nameless feature with a fault shows just the fault', () => {
+    const map = makeMap();
+    const marker = L.circleMarker(map.getCenter(), { radius: 5 }).addTo(map);
+    bindFilledPathTooltip(marker, '', undefined, 0, 'Name missing');
+
+    const bubble = openBubble(marker);
+    expect(bubble?.textContent).toBe('Name missing');
+    expect(bubble?.querySelector('.tooltip-fault')?.textContent).toBe('Name missing');
+  });
+
+  it('a named feature with a fault shows the name with the fault after it', () => {
+    const map = makeMap();
+    const marker = L.circleMarker(map.getCenter(), { radius: 5 }).addTo(map);
+    bindFilledPathTooltip(marker, 'Combi', undefined, 1, 'No members');
+
+    const bubble = openBubble(marker);
+    expect(bubble?.firstChild?.textContent).toBe('Combi');
+    expect(bubble?.querySelector('.tooltip-fault')?.textContent).toBe('No members');
+  });
+
+  it('sync binds a tooltip when a fault appears and swaps it for the name once fixed', () => {
+    const map = makeMap();
+    const marker = L.circleMarker(map.getCenter(), { radius: 5 }).addTo(map);
+    syncFilledPathTooltip(marker, '');
+    expect(marker.getTooltip()).toBeUndefined();
+
+    syncFilledPathTooltip(marker, '', undefined, 0, 'Name missing');
+    expect(marker.getTooltip()).toBeDefined();
+
+    syncFilledPathTooltip(marker, 'Muur');
+    const bubble = openBubble(marker);
+    expect(bubble?.textContent).toBe('Muur');
+    expect(bubble?.querySelector('.tooltip-fault')).toBeNull();
   });
 });
 

@@ -16,6 +16,7 @@
   import type L from 'leaflet';
   import { t } from '$lib/i18n';
   import { toast } from 'svelte-sonner';
+  import { SvelteSet } from 'svelte/reactivity';
 
   const app = createAppState();
   const draft = createDraftState();
@@ -106,6 +107,7 @@
     }
 
     layer.remove(); // the *Layer components re-render this feature from draft state instead
+    pristineIds.add(id);
     interaction.created(id, draft.isValid);
   }
 
@@ -140,6 +142,24 @@
     if (interaction.detailsOpen) interaction.closeDetails();
     interaction.dispatch({ type: 'escape' });
   }
+
+  // Freshly drawn features hide their faults until first deselected.
+  const pristineIds = new SvelteSet<string>();
+  let lastSelectedId: string | null = null;
+  $effect(() => {
+    const id = interaction.selectedId;
+    if (lastSelectedId !== null && lastSelectedId !== id) pristineIds.delete(lastSelectedId);
+    lastSelectedId = id;
+  });
+
+  const visibleFaults = $derived.by(() => {
+    const out = new Map<string, string>();
+    for (const [id, codes] of draft.faults) {
+      if (pristineIds.has(id)) continue;
+      out.set(id, codes.map((code) => t(app.locale, `fault.${code}`)).join(' · '));
+    }
+    return out;
+  });
 
   const selectedFeature = $derived(
     draft.features.find((f) => f.id === interaction.selectedId) ?? null
@@ -180,11 +200,13 @@
       features={draft.obstacles}
       {interaction}
       labelsEnabled={app.labels === 'zoom'}
+      faults={visibleFaults}
     />
     <CombiLayer
       features={draft.combis}
       {interaction}
       labelsEnabled={app.labels === 'zoom'}
+      faults={visibleFaults}
     />
     <LandmarkLayer
       features={draft.landmarks}

@@ -45,6 +45,11 @@ html, body { margin: 0; height: 100%; }
   @apply text-background/80;
 }
 
+.leaflet-tooltip .tooltip-fault {
+  display: block;
+  color: var(--warning-300);
+}
+
 .leaflet-tooltip-top .tooltip-bubble { @apply tooltip-from-top; }
 .leaflet-tooltip-bottom .tooltip-bubble { @apply tooltip-from-bottom; }
 .leaflet-tooltip-left .tooltip-bubble { @apply tooltip-from-left; }
@@ -156,6 +161,7 @@ html, body { margin: 0; height: 100%; }
 :root {
   --map-shadow: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.14));
   --sel-glow: drop-shadow(0 2px 10px rgba(0, 165, 227, 0.65));
+  --sel-glow-warning: drop-shadow(0 2px 10px rgba(224, 138, 0, 0.65));
   --sel-landmark-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
 }
 
@@ -173,6 +179,14 @@ html, body { margin: 0; height: 100%; }
 /* Selected: blue glow */
 :is(.obstacle-dot, .obstacle-line, .obstacle-poly, .combi-zone).selected {
   filter: var(--sel-glow);
+}
+
+/* Invalid: same shape and fill, but an orange outline — and an orange glow when selected. */
+:is(.obstacle-dot, .obstacle-line, .obstacle-poly, .combi-zone).is-invalid {
+  stroke: var(--warning);
+}
+:is(.obstacle-dot, .obstacle-line, .obstacle-poly, .combi-zone).is-invalid.selected {
+  filter: var(--sel-glow-warning);
 }
 
 /* Line inner stroke — opacity only (outer line carries shadow/glow) */

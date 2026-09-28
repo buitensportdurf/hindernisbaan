@@ -48,6 +48,7 @@
   --error-bg: #fbe9e9;
   --warning: #e08a00;
   --warning-bg: #fcf0db;
+  --warning-300: #f5b041;  /* light orange — warning text on dark surfaces */
   --info:    #378add;  /* rgb(55,138,221) */
   --info-bg: #e7f1fb;
 

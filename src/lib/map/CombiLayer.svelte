@@ -4,17 +4,20 @@
   import type { CombiFeature } from '$lib/data/types';
   import type { InteractionController } from '$lib/interaction/controller.svelte';
   import { useMapLayer } from './useMapLayer.svelte';
-  import { FILLED_PATH_STYLE, COMBI_LABEL_ZOOM, syncFilledPathTooltip } from './mapUtils';
+  import { FILLED_PATH_STYLE, COMBI_LABEL_ZOOM, setLayerInvalid, syncFilledPathTooltip } from './mapUtils';
   import { bindFeatureInteraction } from './featureGestures';
 
   let {
     features,
     interaction,
-    labelsEnabled = true
+    labelsEnabled = true,
+    faults
   }: {
     features: CombiFeature[];
     interaction: InteractionController;
     labelsEnabled?: boolean;
+    /** Translated fault text per feature id; faulty features get the invalid outline. */
+    faults?: Map<string, string>;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
@@ -85,6 +88,7 @@
   $effect(() => {
     const names = features.map((f) => [f.id, f.properties.name] as const);
     const zoom = labelsEnabled ? COMBI_LABEL_ZOOM : undefined;
+    const currentFaults = faults;
     const map = getMap();
     if (!map) return;
     untrack(() => {
@@ -94,7 +98,9 @@
         if (!feature || pmIgnore || !(layer instanceof L.Rectangle)) return;
         const name = names.find(([id]) => id === feature.id)?.[1];
         if (name === undefined) return;
-        syncFilledPathTooltip(layer, name, zoom, 1);
+        const fault = currentFaults?.get(feature.id);
+        setLayerInvalid(layer, !!fault);
+        syncFilledPathTooltip(layer, name, zoom, 1, fault);
       });
     });
   });
@@ -159,7 +165,9 @@
       (rectangle as L.Layer & { feature?: CombiFeature }).feature = f;
       bindFeatureInteraction(rectangle, f.id, interaction);
       group.addLayer(rectangle);
-      syncFilledPathTooltip(rectangle, f.properties.name, labelsEnabled ? COMBI_LABEL_ZOOM : undefined, 1);
+      const fault = faults?.get(f.id);
+      setLayerInvalid(rectangle, !!fault);
+      syncFilledPathTooltip(rectangle, f.properties.name, labelsEnabled ? COMBI_LABEL_ZOOM : undefined, 1, fault);
 
       if (countMarker) {
         group.addLayer(countMarker);

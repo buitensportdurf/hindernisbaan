@@ -4,21 +4,23 @@
   import type { ObstacleFeature } from '$lib/data/types';
   import type { InteractionController } from '$lib/interaction/controller.svelte';
   import { useMapLayer } from './useMapLayer.svelte';
-  import { FILLED_PATH_STYLE, OBSTACLE_LABEL_ZOOM, syncFilledPathTooltip } from './mapUtils';
+  import { FILLED_PATH_STYLE, OBSTACLE_LABEL_ZOOM, setLayerInvalid, syncFilledPathTooltip } from './mapUtils';
   import { bindFeatureInteraction } from './featureGestures';
 
   let {
     features,
     interaction,
-    labelsEnabled = true
+    labelsEnabled = true,
+    faults
   }: {
     features: ObstacleFeature[];
     interaction: InteractionController;
     labelsEnabled?: boolean;
+    /** Translated fault text per feature id; faulty features get the invalid outline. */
+    faults?: Map<string, string>;
   } = $props();
 
   const getMap = getContext<() => L.Map | undefined>('map');
-
   // Geometry only — typing a name must not tear the layer down and redraw it.
   const geometryKey = $derived(
     features
@@ -29,16 +31,20 @@
   $effect(() => {
     const names = features.map((f) => [f.id, f.properties.name] as const);
     const zoom = labelsEnabled ? OBSTACLE_LABEL_ZOOM : undefined;
+    const currentFaults = faults;
     const map = getMap();
     if (!map) return;
     untrack(() => {
       map.eachLayer((layer) => {
         const feature = (layer as L.Layer & { feature?: ObstacleFeature; options?: { pmIgnore?: boolean } }).feature;
-        const pmIgnore = (layer as L.Layer & { options?: { pmIgnore?: boolean } }).options?.pmIgnore;
-        if (!feature || pmIgnore) return;
+        if (!feature) return;
         const name = names.find(([id]) => id === feature.id)?.[1];
         if (name === undefined) return;
-        syncFilledPathTooltip(layer, name, zoom);
+        const fault = currentFaults?.get(feature.id);
+        setLayerInvalid(layer, !!fault);
+        const pmIgnore = (layer as L.Layer & { options?: { pmIgnore?: boolean } }).options?.pmIgnore;
+        if (pmIgnore) return;
+        syncFilledPathTooltip(layer, name, zoom, 0, fault);
       });
     });
   });
@@ -48,7 +54,9 @@
       (layer as L.Layer & { feature?: ObstacleFeature }).feature = f;
       bindFeatureInteraction(layer, f.id, interaction);
       group.addLayer(layer);
-      syncFilledPathTooltip(layer, f.properties.name, labelsEnabled ? OBSTACLE_LABEL_ZOOM : undefined);
+      const fault = faults?.get(f.id);
+      setLayerInvalid(layer, !!fault);
+      syncFilledPathTooltip(layer, f.properties.name, labelsEnabled ? OBSTACLE_LABEL_ZOOM : undefined, 0, fault);
     }
 
     for (const f of features) {
@@ -97,6 +105,7 @@
         (innerLine as L.Layer & { feature?: ObstacleFeature }).feature = f;
         group.addLayer(outerLine);
         group.addLayer(innerLine);
+        setLayerInvalid(outerLine, faults?.has(f.id) ?? false);
         attach(hitLine, f);
       } else if (geometry.type === 'Polygon') {
         const latlngs = geometry.coordinates.map((ring) =>

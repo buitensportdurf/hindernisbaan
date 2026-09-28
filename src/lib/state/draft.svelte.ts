@@ -1,6 +1,7 @@
 import { validateCollection } from '$lib/data/loader';
 import { readKey, writeKey, removeKey } from '$lib/storage/local';
 import * as mutations from '$lib/design/draftMutations';
+import { featureFaults } from '$lib/design/featureFaults';
 import type {
   FeatureCollection,
   MapFeature,
@@ -20,6 +21,7 @@ export function createDraftState() {
   let isValid = $state(true);
   let validationErrors = $state<string | null>(null);
   let hasStoredDraft = $state(false);
+  const faults = $derived(featureFaults(features));
 
   function collection(): FeatureCollection {
     return {
@@ -55,6 +57,7 @@ export function createDraftState() {
     get isValid() { return isValid; },
     get validationErrors() { return validationErrors; },
     get hasStoredDraft() { return hasStoredDraft; },
+    get faults() { return faults; },
     get obstacles(): ObstacleFeature[] {
       return features.filter((f): f is ObstacleFeature => f.properties.kind === 'obstacle');
     },

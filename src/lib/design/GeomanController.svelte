@@ -6,8 +6,9 @@
   import type { InteractionController } from '$lib/interaction/controller.svelte';
   import { syncMapFeatureSelection } from '$lib/map/mapUtils';
   import type { DrawTool } from './drawTool';
+  import { applyDrawTool, hintVertices } from './drawMode';
   import { GEOMETRY_COMMIT_EVENTS, selectedEditConfig, type SelectedEditConfig } from './selectedEditConfig';
-  import { t, type Locale } from '$lib/i18n';
+  import type { Locale } from '$lib/i18n';
 
   let {
     interaction,
@@ -28,14 +29,6 @@
   if (!getMap) {
     throw new Error('GeomanController must be rendered inside MapCanvas (missing map context)');
   }
-
-  const SHAPE_BY_TOOL = {
-    point: 'Marker',
-    landmark: 'Marker',
-    line: 'Line',
-    polygon: 'Polygon',
-    rectangle: 'Rectangle'
-  } as const;
 
   type PmLayer = {
     setOptions?: (o: object) => void;
@@ -246,24 +239,6 @@
     queueMicrotask(() => hintVertices(map, locale));
   }
 
-  /** Middle markers grow into a plus on hover (CSS). Real vertices explain click-to-remove. */
-  function hintVertices(map: L.Map, activeLocale: Locale) {
-    const removeHint = t(activeLocale, 'design.vertex.remove');
-    map.eachLayer((layer) => {
-      if (!(layer instanceof L.Marker)) return;
-      const el = layer.getElement();
-      if (!el?.classList.contains('marker-icon') || el.classList.contains('marker-icon-middle')) return;
-      if (layer.getTooltip()?.getContent() === removeHint) return;
-      layer.unbindTooltip();
-      layer.bindTooltip(removeHint, {
-        direction: 'top',
-        offset: [0, -12],
-        opacity: 1,
-        className: 'vertex-hint'
-      });
-    });
-  }
-
   function scheduleSync(map: L.Map) {
     pendingMap = map;
     if (syncScheduled) return;
@@ -280,6 +255,7 @@
   $effect(() => {
     const map = getMap();
     const tool = interaction.tool;
+    const activeLocale = locale;
     if (!map) return;
 
     function handleCreate(e: { shape: string; layer: L.Layer }) {
@@ -288,19 +264,11 @@
     }
 
     map.on('pm:create', handleCreate);
-    map.pm.disableDraw();
-    map.pm.disableGlobalRemovalMode();
-
-    if (tool === 'remove') {
-      map.pm.enableGlobalRemovalMode();
-    } else if (tool) {
-      map.pm.enableDraw(SHAPE_BY_TOOL[tool]);
-    }
+    const cleanupDraw = applyDrawTool(map, tool, activeLocale);
 
     return () => {
       map.off('pm:create', handleCreate);
-      map.pm.disableDraw();
-      map.pm.disableGlobalRemovalMode();
+      cleanupDraw();
     };
   });
 
