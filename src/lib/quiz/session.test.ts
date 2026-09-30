@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Question } from './quiz';
 import { createQuizSession } from './session.svelte';
-import { LENGTH_KEY, MAX_RUNS, RUNS_KEY, loadRunLength, loadRuns, saveRun, saveRunLength, type RunRecord } from './runs';
+import { LENGTH_KEY, MAX_RUNS, RUNS_KEY, loadFsOn, loadRunLength, loadRuns, saveFsOn, saveRun, saveRunLength, type RunRecord } from './runs';
 
 const names = new Map([
   ['a', 'Apenkooi'],
@@ -147,5 +147,13 @@ describe('runs storage', () => {
     expect(loadRunLength()).toBe(10);
     saveRunLength(20);
     expect(loadRunLength()).toBe(20);
+  });
+
+  it('defaults to auto fullscreen and can be suppressed', () => {
+    expect(loadFsOn()).toBe(true);
+    saveFsOn(false);
+    expect(loadFsOn()).toBe(false);
+    saveFsOn(true);
+    expect(loadFsOn()).toBe(true);
   });
 });

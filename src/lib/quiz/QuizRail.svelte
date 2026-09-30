@@ -1,6 +1,8 @@
 <script lang="ts">
   import { t, tf, type Locale } from '$lib/i18n';
   import FlameIcon from '@lucide/svelte/icons/flame';
+  import Maximize2Icon from '@lucide/svelte/icons/maximize-2';
+  import Minimize2Icon from '@lucide/svelte/icons/minimize-2';
   import Volume2Icon from '@lucide/svelte/icons/volume-2';
   import VolumeXIcon from '@lucide/svelte/icons/volume-x';
   import XIcon from '@lucide/svelte/icons/x';
@@ -12,7 +14,10 @@
     total,
     streak = null,
     soundOn,
+    fsOk = false,
+    fsOn = true,
     onToggleSound,
+    onToggleFs,
     onQuit,
     el = $bindable(null)
   }: {
@@ -24,7 +29,10 @@
     /** Hidden when null (practice). */
     streak?: number | null;
     soundOn: boolean;
+    fsOk?: boolean;
+    fsOn?: boolean;
     onToggleSound: () => void;
+    onToggleFs?: () => void;
     onQuit: () => void;
     el?: HTMLElement | null;
   } = $props();
@@ -57,6 +65,17 @@
     </span>
   {/if}
 
+  {#if fsOk}
+    <button
+      type="button"
+      class="icon"
+      aria-label={t(locale, fsOn ? 'test.fs.off' : 'test.fs.on')}
+      aria-pressed={!fsOn}
+      onclick={onToggleFs}
+    >
+      {#if fsOn}<Maximize2Icon />{:else}<Minimize2Icon />{/if}
+    </button>
+  {/if}
   <button
     type="button"
     class="icon"

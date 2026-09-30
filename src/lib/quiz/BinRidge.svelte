@@ -2,6 +2,7 @@
   import { t, tf, type Locale } from '$lib/i18n';
   import { BIN_COLORS, BIN_HEIGHTS, binName, binRange, ridgeHeight } from './bins';
   import { BINS, PASS_PERCENT, binIndex, isPass, percentOf, toNextBin } from './quiz';
+  import { CLIMB_MS } from './reveal';
 
   let {
     locale,
@@ -10,7 +11,8 @@
     previous = null,
     climb,
     showCaption,
-    reducedMotion = false
+    reducedMotion = false,
+    highlight = null
   }: {
     locale: Locale;
     correct: number;
@@ -21,14 +23,18 @@
     climb: boolean;
     showCaption: boolean;
     reducedMotion?: boolean;
+    /** Parent can point at a band — used when the rank title is tapped. */
+    highlight?: number | null;
   } = $props();
-
-  const CLIMB_MS = 1100;
 
   const percent = $derived(percentOf(correct, total));
   const current = $derived(binIndex(percent));
   let shown = $state(0);
   let selected = $state<number | null>(null);
+
+  $effect(() => {
+    if (highlight !== null) selected = highlight;
+  });
 
   $effect(() => {
     if (!climb) return;
@@ -72,7 +78,9 @@
         type="button"
         class="step"
         class:reached={climb && i <= reached}
+        class:now={climb && i === reached}
         class:first={i === 0}
+        class:last={i === BINS.length - 1}
         style:left={`${range.from}%`}
         style:width={`${range.to - range.from}%`}
         style:height={`${BIN_HEIGHTS[i]}px`}
@@ -83,7 +91,11 @@
           e.stopPropagation();
           selected = selected === i ? null : i;
         }}
-      ></button>
+      >
+        {#if climb && i <= reached}
+          <span class="step-name">{binName(locale, i)}</span>
+        {/if}
+      </button>
     {/each}
 
     <span class="threshold" style:left={`${PASS_PERCENT}%`} aria-hidden="true"></span>
@@ -126,7 +138,7 @@
   }
   .peaks {
     position: relative;
-    height: 84px;
+    height: 108px;
   }
   .step {
     position: absolute;
@@ -142,6 +154,42 @@
   }
   .step.reached {
     opacity: 1;
+  }
+  .step.now {
+    z-index: 2;
+  }
+  .step-name {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 4px);
+    width: max-content;
+    max-width: 7.5rem;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--ink-700);
+    text-align: center;
+    text-wrap: balance;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+  .step.first .step-name {
+    left: 0;
+    transform: none;
+    text-align: left;
+  }
+  .step.last .step-name {
+    left: auto;
+    right: 0;
+    transform: none;
+    text-align: right;
+  }
+  .step.now .step-name {
+    font-size: 12px;
+    opacity: 1;
+    color: var(--ink-800);
   }
   .step[aria-pressed='true'] {
     filter: brightness(0.92);

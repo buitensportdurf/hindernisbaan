@@ -9,6 +9,7 @@
   import type { TKey } from '$lib/i18n/dict';
   import HistoryList from '$lib/quiz/HistoryList.svelte';
   import IntroSheet from '$lib/quiz/IntroSheet.svelte';
+  import BinTerm from '$lib/quiz/BinTerm.svelte';
   import QuitDialog from '$lib/quiz/QuitDialog.svelte';
   import QuizLayer from '$lib/quiz/QuizLayer.svelte';
   import QuizPanel from '$lib/quiz/QuizPanel.svelte';
@@ -17,11 +18,10 @@
   import ReportCard from '$lib/quiz/ReportCard.svelte';
   import ResultReveal from '$lib/quiz/ResultReveal.svelte';
   import { Button } from '$lib/components/ui/button';
-  import { binName, formatRunDate } from '$lib/quiz/bins';
+  import { formatRunDate } from '$lib/quiz/bins';
   import {
     OPTION_COUNT,
     TIER_COUNT,
-    binIndex,
     buildRun,
     isPass,
     isQuizzable,
@@ -32,7 +32,8 @@
     type RunLength,
     type Outcome
   } from '$lib/quiz/quiz';
-  import { loadRunLength, loadRuns, loadSoundOn, saveRun, saveRunLength, saveSoundOn, type RunRecord } from '$lib/quiz/runs';
+  import { loadFsOn, loadRunLength, loadRuns, loadSoundOn, saveFsOn, saveRun, saveRunLength, saveSoundOn, type RunRecord } from '$lib/quiz/runs';
+  import { enterTestFullscreen, exitTestFullscreen, fullscreenAvailable } from '$lib/quiz/fullscreen';
   import { createQuizSession, type QuizSession } from '$lib/quiz/session.svelte';
   import { buzz, createSoundboard } from '$lib/quiz/sound';
   import type { QuizView, StampKind } from '$lib/quiz/view';
@@ -72,6 +73,8 @@
   let runs = $state.raw<RunRecord[]>([]);
   let panel = $state.raw<Panel | null>(null);
   let soundOn = $state(true);
+  let fsOn = $state(true);
+  let fsOk = $state(false);
   let runLength = $state<RunLength>(RUN_LENGTH);
   let quitOpen = $state(false);
   let reducedMotion = $state(false);
@@ -107,6 +110,7 @@
     active = session;
     panel = null;
     screen = 'run';
+    if (fsOn) void enterTestFullscreen();
   }
 
   function startExam() {
@@ -145,6 +149,7 @@
     panel = null;
     quitOpen = false;
     screen = 'intro';
+    void exitTestFullscreen();
   }
 
   // ---------- Panels ----------
@@ -235,6 +240,16 @@
     if (soundOn) {
       sound.unlock();
       sound.stamp();
+    }
+  }
+
+  function toggleFs() {
+    fsOn = !fsOn;
+    saveFsOn(fsOn);
+    if (fsOn && (screen === 'run' || screen === 'results' || screen === 'review' || screen === 'practiceDone')) {
+      void enterTestFullscreen();
+    } else if (!fsOn) {
+      void exitTestFullscreen();
     }
   }
 
@@ -407,6 +422,8 @@
     storageOk = lsblockPreview() ? false : isLocalStorageAvailable();
     runs = loadRuns();
     soundOn = loadSoundOn();
+    fsOn = loadFsOn();
+    fsOk = fullscreenAvailable();
     runLength = loadRunLength();
 
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -426,6 +443,7 @@
     return () => {
       motion.removeEventListener('change', onMotion);
       document.removeEventListener('visibilitychange', onVisibility);
+      void exitTestFullscreen();
     };
   });
 
@@ -474,7 +492,10 @@
             total={active.questions.length}
             streak={active.practice ? null : active.streak}
             {soundOn}
+            {fsOk}
+            {fsOn}
             onToggleSound={toggleSound}
+            onToggleFs={toggleFs}
             onQuit={requestQuit}
           />
         </div>
@@ -493,7 +514,10 @@
             {tooFew}
             hasHistory={runs.length > 0}
             {soundOn}
+            {fsOk}
+            {fsOn}
             onToggleSound={toggleSound}
+            onToggleFs={toggleFs}
             onStart={startExam}
             onHistory={() => openPanel({ kind: 'history' })}
           />
@@ -519,7 +543,8 @@
         {:else if screen === 'review' && result}
           <section class="card" aria-label={t(locale, 'test.result')}>
             <p class="chip" class:pass={isPass(resultPercent)}>
-              {binName(locale, binIndex(resultPercent))} · {resultPercent}%
+              <BinTerm {locale} correct={result.correct} total={result.total} />
+              · {resultPercent}%
             </p>
             <div class="card-actions card-actions--review">
               {#if mistakes > 0}
@@ -588,7 +613,9 @@
         >
           {#snippet header()}
             <div class="report-head">
-              <h2 class="report-bin" class:pass={isPass(pct)}>{binName(locale, binIndex(pct))}</h2>
+              <h2 class="report-bin" class:pass={isPass(pct)}>
+                <BinTerm {locale} correct={run.correct} total={run.total} />
+              </h2>
               <p class="report-score">
                 <b>{pct}%</b> · {tf(locale, 'test.result.score', { correct: run.correct, total: run.total })}
               </p>
@@ -676,12 +703,21 @@
   }
   .chip {
     display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
     padding: 6px 12px;
     border-radius: 99px;
     background: var(--sand-100);
     color: var(--sand-700);
     font-size: 14px;
     font-weight: var(--fw-bold);
+  }
+  .chip :global(button) {
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 3px;
   }
   .chip.pass {
     background: var(--success-bg);
@@ -694,6 +730,14 @@
     letter-spacing: -0.02em;
     line-height: 1.1;
     color: var(--sand-700);
+  }
+  .report-bin :global(button) {
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 4px;
   }
   .report-bin.pass {
     color: var(--success);

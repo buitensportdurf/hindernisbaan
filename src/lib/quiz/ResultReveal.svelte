@@ -6,6 +6,7 @@
   import BinRidge from './BinRidge.svelte';
   import ProgressChart from './ProgressChart.svelte';
   import { binName } from './bins';
+  import { REVEAL_MS } from './reveal';
   import { binIndex, isPass, percentOf } from './quiz';
   import type { RunRecord } from './runs';
   import type { Soundboard } from './sound';
@@ -38,7 +39,7 @@
   } = $props();
 
   /** When each part of the reveal appears, in ms after mount. */
-  const STAGES = [150, 650, 1650, 2750, 3150] as const;
+  const STAGES = [REVEAL_MS.score, REVEAL_MS.ridge, REVEAL_MS.title, REVEAL_MS.caption, REVEAL_MS.actions] as const;
   const COUNT_MS = 850;
   const CHART_MIN_RUNS = 3;
   const CHART_MAX_RUNS = 8;
@@ -62,6 +63,7 @@
   let stage = $state(0);
   let shownPercent = $state(0);
   let closeButton = $state<HTMLButtonElement | null>(null);
+  let ridgeHighlight = $state<number | null>(null);
   const timers: ReturnType<typeof setTimeout>[] = [];
   let countFrame = 0;
 
@@ -82,8 +84,8 @@
     if (next <= stage) return;
     const from = stage;
     stage = next;
-    if (from < 1) pass ? sound.fanfare() : sound.finish();
-    if (from < 2) countUp();
+    if (from < 1) countUp();
+    if (from < 3 && next >= 3) pass ? sound.fanfare() : sound.finish();
   }
 
   function skip() {
@@ -130,7 +132,7 @@
   tabindex="-1"
   onclick={skip}
 >
-  {#if pass && stage >= 1 && !reducedMotion}
+  {#if pass && stage >= 3 && !reducedMotion}
     <div class="confetti" aria-hidden="true">
       {#each confetti as c, i (i)}
         <i
@@ -161,13 +163,25 @@
 
   <div class="body">
     <div class="hero">
-      <p class="lead stage" class:in={stage >= 1}>{t(locale, 'test.result.lead')}</p>
-      <h1 id="reveal-bin" class="bin" class:in={stage >= 1}>{binName(locale, bin)}</h1>
-      <p class="pct stage" class:in={stage >= 2}>{shownPercent}%</p>
+      <p class="lead stage" class:in={stage >= 3}>{t(locale, 'test.result.lead')}</p>
+      <h1 id="reveal-bin" class="bin" class:in={stage >= 3}>
+        <button
+          type="button"
+          class="bin-btn"
+          aria-label={tf(locale, 'test.bin.showScale', { bin: binName(locale, bin) })}
+          onclick={(e) => {
+            e.stopPropagation();
+            ridgeHighlight = bin;
+          }}
+        >
+          {binName(locale, bin)}
+        </button>
+      </h1>
+      <p class="pct stage" class:in={stage >= 1}>{shownPercent}%</p>
       <button
         type="button"
         class="score stage"
-        class:in={stage >= 2}
+        class:in={stage >= 1}
         aria-label={`${tf(locale, 'test.result.score', { correct: run.correct, total: run.total })}. ${t(locale, 'test.result.scoreHint')}`}
         onclick={(e) => {
           e.stopPropagation();
@@ -180,15 +194,16 @@
       </button>
     </div>
 
-    <div class="card stage" class:in={stage >= 3}>
+    <div class="card stage" class:in={stage >= 2}>
       <BinRidge
         {locale}
         correct={run.correct}
         total={run.total}
         {previous}
-        climb={stage >= 3}
+        climb={stage >= 2}
         showCaption={stage >= 4}
         {reducedMotion}
+        highlight={ridgeHighlight}
       />
       <div class="trend stage" class:in={stage >= 4}>
         <p class={cn('delta', `delta--${delta.tone}`)}>
@@ -328,6 +343,22 @@
   }
   .bin.in {
     animation: bin-pop 520ms var(--ease-bounce) both;
+  }
+  .bin-btn {
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    text-wrap: inherit;
+    border-radius: 8px;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 1px;
+  }
+  .bin-btn:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
   }
   .reveal--low .bin {
     color: var(--sand-700);

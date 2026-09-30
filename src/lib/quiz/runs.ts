@@ -3,6 +3,7 @@ import { clampRunLength, RUN_LENGTH, type Outcome, type QuestionType, type RunLe
 
 export const RUNS_KEY = 'durf:test:runs';
 export const SOUND_KEY = 'durf:test:sound';
+export const FS_KEY = 'durf:test:fs';
 export const LENGTH_KEY = 'durf:test:length';
 export const MAX_RUNS = 50;
 
@@ -70,6 +71,14 @@ export function loadSoundOn(): boolean {
 
 export function saveSoundOn(on: boolean): void {
   writeKey(SOUND_KEY, on ? 'on' : 'off');
+}
+
+export function loadFsOn(): boolean {
+  return readKey(FS_KEY) !== 'off';
+}
+
+export function saveFsOn(on: boolean): void {
+  writeKey(FS_KEY, on ? 'on' : 'off');
 }
 
 export function loadRunLength(): RunLength {

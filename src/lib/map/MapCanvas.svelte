@@ -108,7 +108,10 @@
     map = L.map(el, {
       zoomControl: false,
       attributionControl: true,
-      doubleClickZoom
+      doubleClickZoom,
+      // Half-level steps: integer snap jumps too far, 0.25 (test frames) felt sticky.
+      zoomSnap: 0.5,
+      zoomDelta: 0.5
     }).setView(CENTER, 17);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     map.attributionControl.setPrefix(false);
@@ -119,7 +122,14 @@
       onBackgroundClick?.();
     });
     onReady?.();
-    return () => map?.remove();
+    const onFs = () => map?.invalidateSize();
+    document.addEventListener('fullscreenchange', onFs);
+    document.addEventListener('webkitfullscreenchange', onFs);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFs);
+      document.removeEventListener('webkitfullscreenchange', onFs);
+      map?.remove();
+    };
   });
 
   $effect(() => {

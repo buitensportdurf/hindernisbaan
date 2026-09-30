@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ResultReveal from './ResultReveal.svelte';
+import { REVEAL_MS } from './reveal';
 import type { RunRecord } from './runs';
 import { createSoundboard } from './sound';
 
@@ -35,5 +36,12 @@ describe('ResultReveal', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('16 of 20 right')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Herd leader/ })).toBeInTheDocument();
+  });
+
+  it('names the rank only after score and climb', () => {
+    expect(REVEAL_MS.score).toBeLessThan(REVEAL_MS.ridge);
+    expect(REVEAL_MS.ridge).toBeLessThan(REVEAL_MS.title);
+    expect(REVEAL_MS.title).toBeLessThan(REVEAL_MS.caption);
   });
 });

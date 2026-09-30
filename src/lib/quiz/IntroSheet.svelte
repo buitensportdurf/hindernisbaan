@@ -8,6 +8,8 @@
   import TimerIcon from '@lucide/svelte/icons/timer';
   import Volume2Icon from '@lucide/svelte/icons/volume-2';
   import VolumeXIcon from '@lucide/svelte/icons/volume-x';
+  import Maximize2Icon from '@lucide/svelte/icons/maximize-2';
+  import Minimize2Icon from '@lucide/svelte/icons/minimize-2';
 
   let {
     locale,
@@ -17,8 +19,11 @@
     tooFew,
     hasHistory,
     soundOn,
+    fsOk = false,
+    fsOn = true,
     onLength,
     onToggleSound,
+    onToggleFs,
     onStart,
     onHistory
   }: {
@@ -29,8 +34,11 @@
     tooFew: boolean;
     hasHistory: boolean;
     soundOn: boolean;
+    fsOk?: boolean;
+    fsOn?: boolean;
     onLength: (n: RunLength) => void;
     onToggleSound: () => void;
+    onToggleFs?: () => void;
     onStart: () => void;
     onHistory: () => void;
   } = $props();
@@ -70,16 +78,30 @@
       <h1 id="intro-title" class="title">{t(locale, 'test.title')}</h1>
       <p class="sub">{t(locale, 'test.intro.sub')}</p>
     </div>
-    <Button
-      variant="ghost"
-      size="icon"
-      class="size-10 shrink-0 text-muted-foreground"
-      aria-label={t(locale, soundOn ? 'test.sound.mute' : 'test.sound.unmute')}
-      aria-pressed={!soundOn}
-      onclick={onToggleSound}
-    >
-      {#if soundOn}<Volume2Icon />{:else}<VolumeXIcon />{/if}
-    </Button>
+    <div class="tools">
+      {#if fsOk}
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-10 shrink-0 text-muted-foreground"
+          aria-label={t(locale, fsOn ? 'test.fs.off' : 'test.fs.on')}
+          aria-pressed={!fsOn}
+          onclick={onToggleFs}
+        >
+          {#if fsOn}<Maximize2Icon />{:else}<Minimize2Icon />{/if}
+        </Button>
+      {/if}
+      <Button
+        variant="ghost"
+        size="icon"
+        class="size-10 shrink-0 text-muted-foreground"
+        aria-label={t(locale, soundOn ? 'test.sound.mute' : 'test.sound.unmute')}
+        aria-pressed={!soundOn}
+        onclick={onToggleSound}
+      >
+        {#if soundOn}<Volume2Icon />{:else}<VolumeXIcon />{/if}
+      </Button>
+    </div>
   </div>
 
   <ul class="facts">
@@ -161,6 +183,11 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
+  }
+  .tools {
+    display: flex;
+    flex: none;
+    gap: 2px;
   }
   .title {
     font-size: 30px;

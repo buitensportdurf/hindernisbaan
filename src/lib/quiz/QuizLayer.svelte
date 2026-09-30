@@ -190,16 +190,13 @@
     return () => components.forEach((c) => unmount(c));
   }, () => landmarkKey);
 
-  // Test-mode map: muted tiles, finer zoom steps so frames fit snugly.
+  // Test-mode map: muted tiles. Zoom snap lives on MapCanvas so wheel/pinch match other modes.
   $effect(() => {
     const map = getMap();
     if (!map) return;
     const container = map.getContainer();
-    const prevSnap = map.options.zoomSnap;
-    map.options.zoomSnap = 0.25;
     container.classList.add('quiz-map');
     return () => {
-      map.options.zoomSnap = prevSnap;
       container.classList.remove('quiz-map', 'quiz-tappable', 'quiz-hide-landmarks');
     };
   });
