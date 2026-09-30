@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { Question } from './quiz';
 import { createQuizSession } from './session.svelte';
-import { MAX_RUNS, RUNS_KEY, loadRuns, saveRun, type RunRecord } from './runs';
+import { LENGTH_KEY, MAX_RUNS, RUNS_KEY, loadRunLength, loadRuns, saveRun, saveRunLength, type RunRecord } from './runs';
 
 const names = new Map([
   ['a', 'Apenkooi'],
@@ -137,5 +137,15 @@ describe('runs storage', () => {
     expect(loadRuns()).toEqual([]);
     localStorage.setItem(RUNS_KEY, JSON.stringify([run('ok'), { v: 2 }, null]));
     expect(loadRuns().map((r) => r.id)).toEqual(['ok']);
+  });
+
+  it('defaults question count to 20 when nothing is stored', () => {
+    expect(loadRunLength()).toBe(20);
+    localStorage.setItem(LENGTH_KEY, '0');
+    expect(loadRunLength()).toBe(20);
+    saveRunLength(10);
+    expect(loadRunLength()).toBe(10);
+    saveRunLength(20);
+    expect(loadRunLength()).toBe(20);
   });
 });

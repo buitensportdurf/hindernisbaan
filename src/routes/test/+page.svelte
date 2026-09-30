@@ -26,6 +26,7 @@
     isPass,
     isQuizzable,
     percentOf,
+    RUN_LENGTH,
     RUN_LENGTH_MAX,
     runLengthOptions,
     type RunLength,
@@ -71,7 +72,7 @@
   let runs = $state.raw<RunRecord[]>([]);
   let panel = $state.raw<Panel | null>(null);
   let soundOn = $state(true);
-  let runLength = $state<RunLength>(20);
+  let runLength = $state<RunLength>(RUN_LENGTH);
   let quitOpen = $state(false);
   let reducedMotion = $state(false);
   let now = $state(0);

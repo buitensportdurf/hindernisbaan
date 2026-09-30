@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { t, tf, type Locale } from '$lib/i18n';
   import { Button } from '$lib/components/ui/button';
+  import { cn } from '$lib/utils';
   import BinRidge from './BinRidge.svelte';
   import ProgressChart from './ProgressChart.svelte';
   import { binName } from './bins';

@@ -1,5 +1,5 @@
 import { readKey, writeKey } from '$lib/storage/local';
-import { clampRunLength, type Outcome, type QuestionType, type RunLength } from './quiz';
+import { clampRunLength, RUN_LENGTH, type Outcome, type QuestionType, type RunLength } from './quiz';
 
 export const RUNS_KEY = 'durf:test:runs';
 export const SOUND_KEY = 'durf:test:sound';
@@ -73,8 +73,10 @@ export function saveSoundOn(on: boolean): void {
 }
 
 export function loadRunLength(): RunLength {
-  const n = Number(readKey(LENGTH_KEY));
-  return clampRunLength(Number.isFinite(n) ? n : NaN);
+  const raw = readKey(LENGTH_KEY);
+  if (raw == null || raw === '') return RUN_LENGTH;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? clampRunLength(n) : RUN_LENGTH;
 }
 
 export function saveRunLength(length: RunLength): void {
