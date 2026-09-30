@@ -31,7 +31,7 @@
   }: {
     app: AppState;
     onImport: (text: string) => void;
-    mode?: 'map' | 'design';
+    mode?: 'map' | 'design' | 'test';
     draft?: import('$lib/state/draft.svelte').DraftState;
     statusExtra?: Snippet;
     hasDraftProblem?: boolean;
@@ -77,6 +77,7 @@
     'max-h-[78vh] w-[min(86vw,300px)] gap-0 overflow-x-hidden overflow-y-auto rounded-none rounded-br-xl border-0 py-0 shadow-[4px_4px_16px_rgba(0,0,0,0.08)] ring-0';
   const mapHref = base ? `${base}/` : '/';
   const designHref = `${base}/design`;
+  const testHref = `${base}/test`;
 
   let measureEl = $state<HTMLDivElement | null>(null);
   let bodyHeight = $state<number | null>(null);
@@ -197,7 +198,11 @@
               <PenLineIcon class={menuIcon} />
               <span class="flex-1 text-left">{t(app.locale, 'menu.mode.design')}</span>
             </Button>
-            <Button variant="ghost" class={menuButton} disabled>
+            <Button
+              variant="ghost"
+              class={cn(menuButton, mode === 'test' && 'bg-secondary text-secondary-foreground')}
+              href={testHref}
+            >
               <ClipboardCheckIcon class={menuIcon} />
               <span class="flex-1 text-left">{t(app.locale, 'menu.mode.test')}</span>
             </Button>

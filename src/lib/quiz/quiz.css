@@ -1,0 +1,318 @@
+/* ============================================================
+   Kennistoets — map states, stamps and the tactile controls.
+   Map selectors hang off .quiz-map (set on the Leaflet container
+   by QuizLayer) so they never leak into the other modes.
+   ============================================================ */
+:root {
+  --quiz-leaf: #5fb462; /* tick on earned labels */
+  --quiz-ok-lip: #25552a;
+  --quiz-bad-lip: #8e1c1c;
+  --quiz-line: #e3e3e3;
+  --quiz-off: #e8e8e8;
+  --quiz-off-lip: #d2d2d2;
+  --quiz-off-text: #b0b0b0;
+  --quiz-sheet-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Map ---------- */
+.quiz-map .leaflet-tile-pane {
+  filter: saturate(0.35) brightness(1.05) contrast(0.93);
+}
+
+.quiz-map .quiz-shape {
+  filter: var(--map-shadow);
+  /* Fade back in only after the stamp has landed; dimming is immediate. */
+  transition: opacity 220ms ease-out 180ms, filter 90ms ease-out, fill 70ms ease-out, stroke 70ms ease-out;
+}
+.quiz-map .quiz-line-inner {
+  transition: opacity 220ms ease-out 180ms, stroke 70ms ease-out;
+}
+.quiz-map .quiz-fill {
+  paint-order: stroke fill;
+}
+.quiz-map :is(.quiz-shape, .quiz-line-inner).is-dim {
+  opacity: 0.38;
+  transition-delay: 0s;
+}
+.quiz-map .quiz-shape.is-target {
+  filter: drop-shadow(0 2px 14px rgba(0, 165, 227, 0.85));
+}
+
+/* Tapped in Find it: the shape inverts to solid blue. */
+.quiz-map .quiz-fill.is-picked {
+  fill: var(--bok-500);
+  stroke: var(--white);
+  filter: var(--sel-glow);
+}
+.quiz-map .quiz-line.is-picked {
+  filter: var(--sel-glow);
+}
+.quiz-map .quiz-line-inner.is-picked {
+  stroke: var(--bok-500);
+}
+
+.quiz-map .quiz-fill.is-right {
+  fill: var(--success-bg);
+  stroke: var(--success);
+  filter: drop-shadow(0 2px 10px rgba(53, 118, 56, 0.55));
+}
+.quiz-map .quiz-line.is-right {
+  stroke: var(--success);
+}
+.quiz-map .quiz-line-inner.is-right {
+  stroke: var(--success-bg);
+}
+
+.quiz-map .quiz-fill.is-wrong {
+  fill: var(--error-bg);
+  stroke: var(--error);
+}
+.quiz-map .quiz-line.is-wrong {
+  stroke: var(--error);
+}
+.quiz-map .quiz-line-inner.is-wrong {
+  stroke: var(--error-bg);
+}
+.quiz-map :is(.quiz-shape, .quiz-line-inner).is-wrong {
+  transform-box: fill-box;
+  animation: quiz-shake 220ms ease-out;
+}
+
+.quiz-map.quiz-tappable path.leaflet-interactive {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.quiz-map:not(.quiz-tappable) path.leaflet-interactive {
+  pointer-events: none;
+}
+
+.quiz-map .quiz-halo {
+  pointer-events: none;
+  animation: quiz-halo 1.35s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+}
+.quiz-map .quiz-halo--late {
+  animation-delay: 0.67s;
+}
+
+@media (max-width: 639px) {
+  .quiz-map .leaflet-bottom {
+    bottom: var(--quiz-dock, 0px);
+  }
+}
+
+.quiz-map .quiz-landmark {
+  transition: opacity 240ms ease-out;
+}
+.quiz-map .quiz-landmark .landmark-pill {
+  pointer-events: none;
+  cursor: default;
+}
+.quiz-map.quiz-hide-landmarks .quiz-landmark {
+  opacity: 0;
+}
+
+/* ---------- Stamps (labels earned during the run) ---------- */
+.quiz-map .leaflet-tooltip .tooltip-bubble.quiz-stamp {
+  display: flex;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  animation: none;
+  overflow: visible;
+}
+.quiz-stamp-face {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.quiz-stamp--known {
+  padding-left: 5px;
+  background: var(--ink-800);
+  color: var(--white);
+}
+.quiz-stamp--missed {
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px dashed #a8a8a8;
+  color: #8a8a8a;
+  font-size: 13px;
+  font-weight: var(--fw-bold);
+  box-shadow: var(--shadow-xs);
+}
+.quiz-stamp--reveal {
+  background: var(--white);
+  border: 1.5px dashed var(--gray-500);
+  color: var(--ink-500);
+  font-weight: var(--fw-semibold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.quiz-stamp--new {
+  animation: quiz-stamp 260ms var(--ease-bounce) both;
+}
+.quiz-stamp--late {
+  animation-delay: 160ms;
+}
+.quiz-stamp-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--quiz-leaf);
+}
+.quiz-stamp-tick svg {
+  width: 10px;
+  height: 10px;
+  color: var(--white);
+}
+
+.quiz-ripple {
+  position: absolute;
+  left: -80px;
+  top: -80px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 3px solid var(--quiz-leaf);
+  pointer-events: none;
+  animation: quiz-ripple 480ms var(--ease-out) 60ms both;
+}
+.quiz-ripple--reveal {
+  border-color: var(--gray-400);
+}
+.quiz-ripple--late {
+  animation-delay: 220ms;
+}
+
+@keyframes quiz-stamp {
+  0% { opacity: 0; transform: scale(1.8); }
+  35% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes quiz-ripple {
+  0% { opacity: 0.9; transform: scale(0.15); }
+  100% { opacity: 0; transform: scale(1); }
+}
+@keyframes quiz-halo {
+  0% { stroke-width: 14; stroke-opacity: 0.9; }
+  100% { stroke-width: 78; stroke-opacity: 0; }
+}
+@keyframes quiz-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+/* ---------- Tactile controls ---------- */
+.quiz-btn {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.02em;
+  transition: transform 50ms ease-out, box-shadow 50ms ease-out, background-color 80ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.quiz-btn:focus-visible {
+  outline: 2px solid var(--bok-700);
+  outline-offset: 3px;
+}
+.quiz-btn:not(:disabled):active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+.quiz-btn--ok {
+  background: var(--success);
+  color: var(--white);
+  box-shadow: 0 4px 0 var(--quiz-ok-lip);
+}
+.quiz-btn--bad {
+  background: var(--error);
+  color: var(--white);
+  box-shadow: 0 4px 0 var(--quiz-bad-lip);
+}
+.quiz-btn:disabled {
+  cursor: default;
+}
+
+.quiz-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  padding: 10px 12px;
+  background: var(--white);
+  border: 2px solid var(--quiz-line);
+  border-bottom-width: 4px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  text-align: center;
+  color: var(--ink-800);
+  transition: background-color 50ms ease-out, border-color 50ms ease-out, color 50ms ease-out, transform 50ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.quiz-tile:focus-visible {
+  outline: 2px solid var(--bok-700);
+  outline-offset: 2px;
+}
+.quiz-tile:not(:disabled):active {
+  border-bottom-width: 2px;
+  transform: translateY(2px);
+}
+.quiz-tile.is-selected {
+  background: var(--bok-50);
+  border-color: var(--bok-300);
+  color: var(--bok-800);
+}
+.quiz-tile.is-good {
+  background: var(--success-bg);
+  border-color: #9ccc9e;
+  color: var(--success);
+}
+.quiz-tile.is-wrong {
+  background: var(--error-bg);
+  border-color: #eba5a5;
+  color: var(--error);
+  animation: quiz-shake 220ms ease-out;
+}
+.quiz-tile:disabled {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-map .quiz-halo,
+  .quiz-map :is(.quiz-shape, .quiz-line-inner).is-wrong,
+  .quiz-tile.is-wrong,
+  .quiz-ripple {
+    animation: none;
+  }
+  .quiz-ripple {
+    display: none;
+  }
+  .quiz-stamp--new {
+    animation: none;
+  }
+}

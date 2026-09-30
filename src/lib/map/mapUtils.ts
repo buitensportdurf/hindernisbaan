@@ -19,7 +19,7 @@ export const COMBI_LABEL_ZOOM = 18;
 /** Obstacle labels join one zoom step further in. */
 export const OBSTACLE_LABEL_ZOOM = 19;
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -50,11 +50,16 @@ const LABEL_ANGLE_OFFSETS = [0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 1
 /** Wider rings tried when every angle at a closer ring is already taken. */
 const LABEL_RING_COUNT = 3;
 
+/** Screen space along each container edge that floating UI covers. */
+export type LabelInsets = { top: number; right: number; bottom: number; left: number };
+
 type LabelEntry = { layer: L.Layer; tier: number };
 type LabelState = {
   entries: Set<LabelEntry>;
   /** When set, only this feature's name tooltip stays visible. */
   selectedId?: string | null;
+  /** When set, spots outside the visible container are penalized like covered geometry. */
+  insets?: () => LabelInsets;
   raf?: number;
   hooked?: boolean;
 };
@@ -178,7 +183,22 @@ export function placeLabels(map: L.Map): void {
       return { tooltip, el, box, featureId, tier: entry.tier, size: labelFootprint(entry.layer), bubble };
     })
     .filter((item) => item !== null);
-  items.sort((a, b) => (b.tier - a.tier) || (b.size - a.size));
+
+  let view: ScreenRect | null = null;
+  if (state.insets) {
+    const size = map.getSize();
+    const inset = state.insets();
+    view = { l: inset.left, t: inset.top, r: size.x - inset.right, b: size.y - inset.bottom };
+  }
+  // Kept in view, labels by a side edge have the fewest free spots, so they choose first.
+  // Features out of view go last: their labels would only take space at the edge.
+  const edgeRoom = (box: { cx: number; cy: number }) =>
+    !view || box.cx < view.l || box.cx > view.r || box.cy < view.t || box.cy > view.b
+      ? Infinity
+      : Math.min(box.cx - view.l, view.r - box.cx);
+  items.sort(
+    (a, b) => (b.tier - a.tier) || (view ? edgeRoom(a.box) - edgeRoom(b.box) : 0) || (b.size - a.size)
+  );
 
   const selectedId = state.selectedId ?? null;
   const placed: ScreenRect[] = [];
@@ -192,10 +212,11 @@ export function placeLabels(map: L.Map): void {
     item.el.classList.remove('tooltip-selection-hidden');
 
     const { width: w, height: h } = item.bubble.getBoundingClientRect();
-    let best: { x: number; y: number; rect: ScreenRect; penalty: number } | null = null;
+    let best: { x: number; y: number; rect: ScreenRect; penalty: number; outside: number } | null = null;
     // If every angle on the ring hugging the feature collides with an already-placed
     // label, step out to a wider ring and sweep again before giving up — otherwise a
     // label in a dense cluster is culled even though open space exists further out.
+    // Labels kept in view also step out while their best spot still leaves the view.
     ringLoop: for (let ring = 0; ring < LABEL_RING_COUNT; ring++) {
       const ringGap = LABEL_EDGE_GAP + ring * (h + LABEL_GAP);
       const hw = item.box.hw + LABEL_STROKE_PAD;
@@ -219,12 +240,15 @@ export function placeLabels(map: L.Map): void {
           const overlap = rectOverlapArea(rect, f.rect);
           penalty += f.id === item.featureId ? overlap * 4 : overlap;
         }
+        const outside = view ? (rect.r - rect.l) * (rect.b - rect.t) - rectOverlapArea(rect, view) : 0;
+        // Feature boxes overstate the drawn geometry; clipped text is always unreadable.
+        penalty += outside * 20;
         const pressure = labelPressure(rect, placed);
         const score = penalty + pressure;
-        if (!best || score < best.penalty - 0.5) best = { x, y, rect, penalty: score };
+        if (!best || score < best.penalty - 0.5) best = { x, y, rect, penalty: score, outside };
         if (penalty === 0 && pressure === 0) break ringLoop;
       }
-      if (best) break;
+      if (best && best.outside === 0) break;
     }
     item.el.classList.toggle('tooltip-culled', !best);
     if (best) {
@@ -246,6 +270,22 @@ function scheduleLabelPlacement(map: L.Map): void {
     state.raf = undefined;
     placeLabels(map);
   });
+}
+
+/**
+ * Keeps labels inside the container minus `insets` where they can, instead of
+ * spreading off-screen. Placement still only reruns on zoom, so pans don't reshuffle.
+ * Returns a function that turns it off again.
+ */
+export function keepLabelsInView(map: L.Map, insets: () => LabelInsets): () => void {
+  const state = labelState(map);
+  state.insets = insets;
+  scheduleLabelPlacement(map);
+  return () => {
+    if (state.insets !== insets) return;
+    state.insets = undefined;
+    scheduleLabelPlacement(map);
+  };
 }
 
 /** Top-center of a layer's bounds — tooltip sits above the feature, not its centroid. */
@@ -389,6 +429,125 @@ export function bindFilledPathTooltip(
   });
   // Both call sites add the layer to the map before binding, so 'add' already fired.
   if ((layer as L.Layer & { _map?: L.Map })._map) watchZoom();
+}
+
+const placedLabelCleanups = new WeakMap<L.Layer, () => void>();
+
+/**
+ * Binds an always-visible label with custom HTML that joins radial placement.
+ * The HTML needs a `.tooltip-bubble` element, which placement measures.
+ */
+export function bindPlacedLabel(layer: L.Layer, html: string, labelTier = 1): void {
+  unbindPlacedLabel(layer);
+  const entry: LabelEntry = { layer, tier: labelTier };
+  const getMap = () => (layer as L.Layer & { _map?: L.Map })._map;
+
+  const onOpen = () => {
+    const tooltip = layer.getTooltip();
+    const map = getMap();
+    if (!tooltip || !map) return;
+    tooltip.setLatLng(tooltipAnchor(layer));
+    labelState(map).entries.add(entry);
+    scheduleLabelPlacement(map);
+  };
+  const onClose = () => {
+    const map = getMap();
+    if (!map) return;
+    // Same as permanent name labels: Leaflet may close them while the layer stays on the map.
+    if (map.hasLayer(layer)) {
+      queueMicrotask(() => {
+        const tooltip = layer.getTooltip();
+        if (tooltip && map.hasLayer(layer) && !tooltip.isOpen()) layer.openTooltip();
+      });
+      return;
+    }
+    labelState(map).entries.delete(entry);
+    scheduleLabelPlacement(map);
+  };
+
+  layer.on('tooltipopen', onOpen);
+  layer.on('tooltipclose', onClose);
+  placedLabelCleanups.set(layer, () => {
+    layer.off('tooltipopen', onOpen);
+    layer.off('tooltipclose', onClose);
+    const map = getMap();
+    if (map) {
+      labelState(map).entries.delete(entry);
+      scheduleLabelPlacement(map);
+    }
+    layer.unbindTooltip();
+    placedLabelCleanups.delete(layer);
+  });
+  layer.bindTooltip(html, { permanent: true, direction: 'center', offset: [0, 0], opacity: 1 });
+}
+
+export function unbindPlacedLabel(layer: L.Layer): void {
+  placedLabelCleanups.get(layer)?.();
+}
+
+/** SVG path for polygon rings with every corner rounded to `r`, clamped to half of each edge. */
+export function roundedPolyPath(parts: L.Point[][], r: number): string {
+  let str = '';
+  for (const ring of parts) {
+    const n = ring.length;
+    if (n < 3) continue;
+    let area = 0;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      area += ring[i].x * ring[j].y - ring[j].x * ring[i].y;
+    }
+    // CW (area>0) → sweep=1, CCW (area<0) → sweep=0
+    const sweep = area > 0 ? 1 : 0;
+    let first = true;
+    for (let i = 0; i < n; i++) {
+      const prev = ring[(i - 1 + n) % n];
+      const curr = ring[i];
+      const next = ring[(i + 1) % n];
+      const d1x = curr.x - prev.x, d1y = curr.y - prev.y;
+      const l1 = Math.sqrt(d1x * d1x + d1y * d1y);
+      const d2x = next.x - curr.x, d2y = next.y - curr.y;
+      const l2 = Math.sqrt(d2x * d2x + d2y * d2y);
+      if (l1 === 0 || l2 === 0) continue;
+      const cr = Math.min(r, l1 / 2, l2 / 2);
+      const ax = curr.x - cr * d1x / l1, ay = curr.y - cr * d1y / l1;
+      const bx = curr.x + cr * d2x / l2, by = curr.y + cr * d2y / l2;
+      str += first ? `M ${ax} ${ay}` : ` L ${ax} ${ay}`;
+      str += ` A ${cr} ${cr} 0 0 ${sweep} ${bx} ${by}`;
+      first = false;
+    }
+    str += ' Z';
+  }
+  return str || 'M0 0';
+}
+
+/**
+ * Redraws a polygon with its corners rounded by half its shortest on-screen edge,
+ * which turns combi rectangles into stadiums. `onDraw` gets that edge length.
+ */
+export function roundPolygonCorners(layer: L.Polygon, onDraw?: (minEdge: number) => void): void {
+  const target = layer as L.Polygon & {
+    _updatePath: () => void;
+    _parts?: L.Point[][];
+    _path?: SVGPathElement;
+  };
+  const origUpdatePath = target._updatePath.bind(target);
+  target._updatePath = function () {
+    origUpdatePath();
+    const parts = target._parts ?? [];
+    if (!parts?.[0]?.length) return;
+    const ring = parts[0];
+    let minEdge = Infinity;
+    for (let i = 0; i < ring.length; i++) {
+      const j = (i + 1) % ring.length;
+      const dx = ring[j].x - ring[i].x;
+      const dy = ring[j].y - ring[i].y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len > 0) minEdge = Math.min(minEdge, len);
+    }
+    const r = minEdge === Infinity ? 0 : minEdge / 2;
+    target._path?.setAttribute('d', roundedPolyPath(parts, r));
+    onDraw?.(minEdge);
+  };
 }
 
 /** Update a feature label in place. Binds one if the name or fault just became non-empty. */

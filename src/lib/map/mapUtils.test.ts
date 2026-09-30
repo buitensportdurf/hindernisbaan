@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import L from 'leaflet';
 import {
   bindFilledPathTooltip,
+  keepLabelsInView,
   placeLabels,
   syncFilledPathTooltip,
   syncMapFeatureSelection,
@@ -238,6 +239,33 @@ describe('placeLabels — dense clusters no longer sacrifice labels that have ro
     placeLabels(map);
 
     expect(marker.getTooltip()!.getElement()?.classList.contains('tooltip-culled')).toBe(false);
+  });
+});
+
+describe('keepLabelsInView — labels stay inside the visible map', () => {
+  it('moves a label that would leave the map back inside, and only when asked', () => {
+    const map = makeMap();
+    // jsdom maps have no size, so the centre sits at container (0, 0): the top-left corner.
+    vi.spyOn(map, 'getSize').mockReturnValue(L.point(400, 300));
+    const marker = L.circleMarker(map.getCenter(), { radius: 5 }).addTo(map);
+    bindFilledPathTooltip(marker, 'Corner obstacle', map.getZoom(), 0);
+    const labelBox = () => {
+      const p = map.latLngToContainerPoint(marker.getTooltip()!.getLatLng()!);
+      return { left: p.x - BUBBLE_SIZE.width / 2, top: p.y - BUBBLE_SIZE.height / 2 };
+    };
+
+    placeLabels(map);
+    expect(labelBox().top).toBeLessThan(0);
+
+    const release = keepLabelsInView(map, () => ({ top: 0, right: 0, bottom: 0, left: 0 }));
+    placeLabels(map);
+    expect(labelBox().left).toBeGreaterThanOrEqual(0);
+    expect(labelBox().top).toBeGreaterThanOrEqual(0);
+    expect(marker.getTooltip()!.getElement()?.classList.contains('tooltip-culled')).toBe(false);
+
+    release();
+    placeLabels(map);
+    expect(labelBox().top).toBeLessThan(0);
   });
 });
 

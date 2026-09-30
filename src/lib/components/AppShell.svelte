@@ -17,6 +17,7 @@
     app = createAppState(),
     interaction,
     mode = 'map',
+    showMenu = true,
     hasDraftProblem = false,
     draft = undefined,
     fitFeatures: fitFeaturesProp = undefined,
@@ -27,7 +28,8 @@
   }: {
     app?: AppState;
     interaction: InteractionController;
-    mode?: 'map' | 'design';
+    mode?: 'map' | 'design' | 'test';
+    showMenu?: boolean;
     hasDraftProblem?: boolean;
     draft?: import('$lib/state/draft.svelte').DraftState;
     fitFeatures?: import('$lib/data/types').MapFeature[] | null;
@@ -128,7 +130,9 @@
     {@render mapLayers?.()}
   </MapCanvas>
 
-  <Menu {app} onImport={handleImport} {mode} {draft} statusExtra={menuStatusExtra} {hasDraftProblem} />
+  {#if showMenu}
+    <Menu {app} onImport={handleImport} {mode} {draft} statusExtra={menuStatusExtra} {hasDraftProblem} />
+  {/if}
 
   {@render toolbar?.()}
   {@render editorPanel?.()}

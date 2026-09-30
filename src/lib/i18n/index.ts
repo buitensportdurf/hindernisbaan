@@ -22,3 +22,10 @@ export function resolveInitialLocale(
 export function t(locale: Locale, key: TKey): string {
   return dict[locale][key];
 }
+
+/** `t` with `{placeholder}` values filled in. */
+export function tf(locale: Locale, key: TKey, vars: Record<string, string | number>): string {
+  return t(locale, key).replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in vars ? String(vars[name]) : match
+  );
+}
