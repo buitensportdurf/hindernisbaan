@@ -36,7 +36,9 @@ describe('ResultReveal', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('16 of 20 right')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Herd leader/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Gids van de kudde/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'See your map' })).toHaveClass('on-green-primary');
+    expect(screen.getByRole('button', { name: 'Practise your 4 mistakes' })).toHaveClass('on-green-ghost');
   });
 
   it('names the rank only after score and climb', () => {

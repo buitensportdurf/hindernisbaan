@@ -22,10 +22,11 @@ describe('HistoryList', () => {
     const onOpen = vi.fn();
     render(HistoryList, { locale: 'en', runs: [run('r1', 16)], onOpen });
 
-    await fireEvent.click(screen.getByRole('button', { name: /Herd leader — show the scale/ }));
+    await fireEvent.click(screen.getByRole('button', { name: /Gids van de kudde — show the scale/ }));
     expect(onOpen).not.toHaveBeenCalled();
     await waitFor(() => {
       expect(screen.getByText('Grasshopper')).toBeInTheDocument();
+      expect(screen.getByText('Geitje')).toBeInTheDocument();
     });
 
     await fireEvent.click(screen.getByText('80%'));

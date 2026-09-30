@@ -36,6 +36,8 @@ export interface Question {
   hideLandmarks: boolean;
   /** Null for untimed practice questions. */
   timeLimitMs: number | null;
+  /** Set when the prompt is a combi member rather than the feature itself. */
+  memberName?: string;
 }
 
 export const BINS = [
@@ -160,14 +162,40 @@ function weightedPick(pool: Quizzable[], tier: number, rand: () => number): Quiz
   return pool[pool.length - 1];
 }
 
-/** Question types for one tier: mostly Name it, never opening a run with Find it. */
-function tierTypes(tier: number, rand: () => number): QuestionType[] {
-  const types = shuffle<QuestionType>(['name', 'name', 'name', 'find', 'find'], rand);
+/** Question mix for one tier: Name it, Find it, and member→combi, in equal measure. Never open a run with Find it. */
+type MixType = QuestionType | 'member';
+
+function tierTypes(tier: number, rand: () => number): MixType[] {
+  const types = shuffle<MixType>(['name', 'find', 'member', 'name', 'find', 'member'], rand).slice(0, 5);
   if (tier === 0 && types[0] === 'find') {
-    const i = types.indexOf('name');
-    [types[0], types[i]] = [types[i], types[0]];
+    const i = types.findIndex((x) => x !== 'find');
+    if (i > 0) [types[0], types[i]] = [types[i], types[0]];
   }
   return types;
+}
+
+function isCombi(f: Quizzable): f is CombiFeature {
+  return f.properties.kind === 'combi';
+}
+
+/** Member names that belong to exactly one combi still in the pool. */
+function uniqueMembersIn(pool: Quizzable[]): { name: string; combi: CombiFeature }[] {
+  const combis = pool.filter(isCombi);
+  const owned = new Map<string, CombiFeature | null>();
+  for (const c of combis) {
+    const seen = new Set<string>();
+    for (const m of c.properties.members) {
+      const n = m.name.trim();
+      if (!n || n === c.properties.name || seen.has(n)) continue;
+      seen.add(n);
+      owned.set(n, owned.has(n) ? null : c);
+    }
+  }
+  const out: { name: string; combi: CombiFeature }[] = [];
+  for (const [name, combi] of owned) {
+    if (combi) out.push({ name, combi });
+  }
+  return out;
 }
 
 export function buildRun(features: MapFeature[], seed: number, length = RUN_LENGTH): Question[] {
@@ -196,9 +224,25 @@ export function buildRun(features: MapFeature[], seed: number, length = RUN_LENG
   for (let tier = 0; questions.length < total && pool.length > 0; tier = Math.min(tier + 1, TIER_COUNT - 1)) {
     for (const wanted of tierTypes(tier, rand)) {
       if (questions.length >= total || pool.length === 0) break;
-      const findPool = pool.filter(findable);
-      const type: QuestionType = wanted === 'find' && findPool.length > 0 ? 'find' : 'name';
-      const target = weightedPick(type === 'find' ? findPool : pool, tier, rand);
+      const members = uniqueMembersIn(pool);
+      let type: QuestionType;
+      let target: Quizzable;
+      let memberName: string | undefined;
+
+      if (wanted === 'member' && members.length > 0) {
+        const combis = [...new Map(members.map((m) => [m.combi.id, m.combi])).values()];
+        target = weightedPick(combis, tier, rand);
+        const forCombi = members.filter((m) => m.combi.id === target.id);
+        memberName = forCombi[Math.floor(rand() * forCombi.length)]!.name;
+        type = findable(target) && rand() < 0.5 ? 'find' : 'name';
+      } else {
+        const findPool = pool.filter(findable);
+        type = wanted === 'find' && findPool.length > 0 ? 'find' : 'name';
+        target = weightedPick(type === 'find' ? findPool : pool, tier, rand);
+      }
+
+      if (questions.length === 0 && type === 'find') type = 'name';
+
       pool.splice(pool.indexOf(target), 1);
       const name = target.properties.name;
       asked.set(name, (asked.get(name) ?? 0) + 1);
@@ -207,10 +251,11 @@ export function buildRun(features: MapFeature[], seed: number, length = RUN_LENG
       }
 
       const near = byDistance(target, all);
+      const conceal = type === 'find' || Boolean(memberName);
       let frameIds: string[] = [];
       let frameShift: [number, number] | undefined;
       if (tier < TIER_COUNT - 1) {
-        if (type === 'name') {
+        if (!conceal) {
           frameIds = [target.id, ...near.slice(0, NAME_FRAME_NEIGHBOURS[tier]).map((f) => f.id)];
         } else {
           // Neighbourhood around a nearby (not closest) feature, then pull the
@@ -251,12 +296,18 @@ export function buildRun(features: MapFeature[], seed: number, length = RUN_LENG
         tier,
         type,
         targetId: target.id,
-        options: type === 'name' ? nameOptions(target, all, near, tier, rand) : [],
+        options:
+          type === 'name'
+            ? memberName && isCombi(target)
+              ? combiNameOptions(target, all, near, tier, rand)
+              : nameOptions(target, all, near, tier, rand)
+            : [],
         frameIds,
         frameShift,
-        maxZoom: type === 'find' ? 17.5 : type === 'name' && tier === 0 ? 18.5 : 18,
+        maxZoom: conceal ? 17.5 : type === 'name' && tier === 0 ? 18.5 : 18,
         hideLandmarks: tier === TIER_COUNT - 1,
-        timeLimitMs: TIER_TIME_MS[tier]
+        timeLimitMs: TIER_TIME_MS[tier],
+        memberName
       });
     }
   }
@@ -300,6 +351,31 @@ function nameOptions(
   for (const f of [...ranked, ...shuffle(others, rand)]) {
     if (names.length >= want) break;
     if (!names.includes(f.properties.name)) names.push(f.properties.name);
+  }
+  return shuffle([correct, ...names], rand);
+}
+
+/** Correct combi plus other combi names — used when the prompt is a member. */
+function combiNameOptions(
+  target: CombiFeature,
+  all: Quizzable[],
+  nearToFar: Quizzable[],
+  tier: number,
+  rand: () => number
+): string[] {
+  const correct = target.properties.name;
+  const others = nearToFar.filter((f) => isCombi(f) && f.properties.name !== correct);
+  const alike = (f: Quizzable) => looksAlike(f.properties.name, correct);
+  let ranked: Quizzable[];
+  if (tier === 0) ranked = shuffle(others.slice(Math.floor(others.length / 2)).filter((f) => !alike(f)), rand);
+  else if (tier === 1) ranked = shuffle(others.filter((f) => !alike(f)), rand);
+  else ranked = [...others.filter(alike), ...others.filter((f) => !alike(f))];
+
+  const want = Math.min(OPTION_COUNT - 1, new Set(all.filter(isCombi).map((f) => f.properties.name)).size - 1);
+  const names: string[] = [];
+  for (const f of [...ranked, ...shuffle(others, rand), ...shuffle(all.filter(isCombi), rand)]) {
+    if (names.length >= want) break;
+    if (f.properties.name !== correct && !names.includes(f.properties.name)) names.push(f.properties.name);
   }
   return shuffle([correct, ...names], rand);
 }

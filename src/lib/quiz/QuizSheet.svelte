@@ -46,6 +46,8 @@
 
   const tone = $derived(!feedback ? null : outcome === 'correct' ? 'ok' : 'bad');
   const findParts = $derived(t(locale, 'test.q.find').split('{name}'));
+  const memberNameParts = $derived(t(locale, 'test.q.member.name').split('{name}'));
+  const memberFindParts = $derived(t(locale, 'test.q.member.find').split('{name}'));
 
   const title = $derived(
     outcome === 'correct'
@@ -77,7 +79,15 @@
   <div class="head">
     <div class="qhead" class:gone={feedback} aria-hidden={feedback}>
       <p class="eyebrow">{eyebrow}</p>
-      {#if question.type === 'name'}
+      {#if question.memberName && question.type === 'name'}
+        <h2 class="prompt">{memberNameParts[0]}<b>{question.memberName}</b>{memberNameParts[1] ?? ''}</h2>
+      {:else if question.memberName}
+        <h2 class="prompt">{memberFindParts[0]}<b>{question.memberName}</b>{memberFindParts[1] ?? ''}</h2>
+        <p class="hint">
+          <PointerIcon />
+          {t(locale, picked ? 'test.q.find.picked' : 'test.q.find.hint')}
+        </p>
+      {:else if question.type === 'name'}
         <h2 class="prompt">
           {t(locale, isCombi ? 'test.q.name.combi' : 'test.q.name.obstacle')}
         </h2>

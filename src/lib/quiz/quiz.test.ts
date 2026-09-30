@@ -99,6 +99,46 @@ describe('buildRun', () => {
     }
   });
 
+  it('asks whose-combi for members about as often as Name it and Find it', () => {
+    let name = 0;
+    let find = 0;
+    let member = 0;
+    for (let seed = 0; seed < 80; seed++) {
+      for (const q of buildRun(course.features, seed)) {
+        if (q.memberName) member += 1;
+        else if (q.type === 'find') find += 1;
+        else name += 1;
+      }
+    }
+    for (const n of [name, find, member]) {
+      expect(n).toBeGreaterThan(350);
+      expect(n).toBeLessThan(750);
+    }
+  });
+
+  it('ties a member prompt to the combi that lists it', () => {
+    const membersOf = new Map<string, string[]>();
+    for (const f of course.features) {
+      if (f.properties.kind !== 'combi') continue;
+      membersOf.set(
+        f.id,
+        f.properties.members.map((m) => m.name.trim()).filter(Boolean)
+      );
+    }
+    for (const seed of seeds) {
+      for (const q of buildRun(course.features, seed).filter((q) => q.memberName)) {
+        expect(byId.get(q.targetId)!.properties.kind).toBe('combi');
+        expect(membersOf.get(q.targetId)).toContain(q.memberName);
+        if (q.type === 'name') {
+          expect(q.options).toContain(nameOf(q.targetId));
+          expect(q.options.every((n) => [...byId.values()].some((f) => f.properties.kind === 'combi' && f.properties.name === n))).toBe(
+            true
+          );
+        }
+      }
+    }
+  });
+
   it('keeps the target in frame, and frames the whole course without landmarks in the finale', () => {
     for (const seed of seeds) {
       for (const q of buildRun(course.features, seed)) {
@@ -154,7 +194,10 @@ describe('buildRun', () => {
     const small = course.features.filter(isQuizzable).slice(0, 6);
     const run = buildRun(small, 3);
     expect(run).toHaveLength(6);
-    expect(run.filter((q) => q.type === 'name').every((q) => q.options.length === 4)).toBe(true);
+    expect(run.filter((q) => q.type === 'name' && !q.memberName).every((q) => q.options.length === 4)).toBe(true);
+    expect(
+      run.filter((q) => q.type === 'name' && q.memberName).every((q) => q.options.includes(nameOf(q.targetId)))
+    ).toBe(true);
   });
 });
 

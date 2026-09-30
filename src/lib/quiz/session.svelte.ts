@@ -50,7 +50,8 @@ export function createQuizSession(options: {
       outcome,
       ms: Math.max(0, Math.round(ms)),
       picked: pick,
-      pickedName: q.type === 'find' && pick ? (names.get(pick) ?? null) : null
+      pickedName: q.type === 'find' && pick ? (names.get(pick) ?? null) : null,
+      memberName: q.memberName
     });
   }
 

@@ -363,7 +363,7 @@
       maxZoom: q.maxZoom,
       hideLandmarks: q.hideLandmarks
     };
-    if (q.type === 'name') {
+    if (q.type === 'name' && !q.memberName) {
       return {
         ...framed,
         targetId: q.targetId,
@@ -374,7 +374,7 @@
     }
     return {
       ...framed,
-      tappable: !feedback,
+      tappable: !feedback && q.type === 'find',
       pickedId: feedback ? null : s.picked,
       targetId: answer && answer.outcome !== 'correct' ? q.targetId : null,
       halo: !!answer && answer.outcome !== 'correct',

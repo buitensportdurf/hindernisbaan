@@ -218,7 +218,7 @@
 
     <div class="actions stage" class:in={stage >= 5}>
       <Button
-        class="w-full"
+        class={cn('w-full', pass && 'on-green-primary')}
         variant={pass ? 'secondary' : 'default'}
         onclick={(e: MouseEvent) => {
           e.stopPropagation();
@@ -229,7 +229,7 @@
       </Button>
       {#if mistakes > 0}
         <Button
-          class="w-full"
+          class={cn('w-full', pass && 'on-green-ghost')}
           variant="outline"
           size="sm"
           onclick={(e: MouseEvent) => {
@@ -444,6 +444,23 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
+  .reveal--pass :global(.on-green-primary) {
+    background: var(--white);
+    color: var(--success);
+    box-shadow: none;
+  }
+  .reveal--pass :global(.on-green-primary:hover) {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  .reveal--pass :global(.on-green-ghost) {
+    background: transparent;
+    color: var(--white);
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+  .reveal--pass :global(.on-green-ghost:hover) {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--white);
   }
 
   /* Laptop-height windows: keep both actions above the fold. */

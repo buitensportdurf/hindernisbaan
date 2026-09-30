@@ -43,7 +43,7 @@
       </button>
     {/snippet}
   </PopoverTrigger>
-  <PopoverContent class="w-[min(22rem,calc(100vw-24px))] p-3" align="center" collisionPadding={12}>
+  <PopoverContent class="w-[min(24rem,calc(100vw-24px))] p-3" align="center" collisionPadding={12}>
     <BinRidge {locale} {correct} {total} {previous} climb showCaption reducedMotion />
   </PopoverContent>
 </Popover>

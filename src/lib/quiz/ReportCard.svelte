@@ -34,9 +34,12 @@
             {#if a.outcome === 'correct'}<CheckIcon />{:else if a.outcome === 'timeout'}<TimerOffIcon />{:else}<XIcon />{/if}
           </span>
           <div class="text">
-            <p class="name">{a.name}</p>
+            <p class="name">{a.memberName ?? a.name}</p>
             <p class="meta">
-              {t(locale, a.type === 'name' ? 'test.report.name' : 'test.report.find')}{#if more}<span class:bad={a.outcome === 'wrong'}>{` · ${more}`}</span>{/if}
+              {#if a.memberName}{tf(locale, 'test.report.memberOf', { combi: a.name })} · {/if}{t(
+                locale,
+                a.type === 'name' ? 'test.report.name' : 'test.report.find'
+              )}{#if more}<span class:bad={a.outcome === 'wrong'}>{` · ${more}`}</span>{/if}
             </p>
           </div>
           <span class="secs">

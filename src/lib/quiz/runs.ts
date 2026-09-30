@@ -19,6 +19,8 @@ export interface AnswerRecord {
   picked: string | null;
   /** Find it: name of the feature tapped. */
   pickedName?: string | null;
+  /** Prompt was a combi member rather than the feature itself. */
+  memberName?: string;
 }
 
 export interface RunRecord {

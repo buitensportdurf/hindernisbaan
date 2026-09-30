@@ -6,9 +6,13 @@ import { BINS } from './quiz';
 export const BIN_COLORS = ['#efe8d4', '#e5dabb', '#d9c99c', '#b9dcb9', '#86c289', '#357638'] as const;
 export const BIN_HEIGHTS = [14, 20, 27, 36, 46, 58] as const;
 
-export function binName(locale: Locale, index: number): string {
-  return t(locale, `test.bin.${BINS[index].key}` as TKey);
+/** Rank names stay Dutch in every UI language. */
+export function binName(_locale: Locale, index: number): string {
+  return t('nl', `test.bin.${BINS[index].key}` as TKey);
 }
+
+/** Text on white, darkened from each band so sand stays readable. */
+export const BIN_LABEL_COLORS = ['#7a6840', '#6e5c32', '#5c4a24', '#3a7a3e', '#2c6b32', '#1f5a28'] as const;
 
 export function binRange(index: number): { from: number; to: number } {
   return { from: BINS[index].min, to: BINS[index + 1]?.min ?? 100 };

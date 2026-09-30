@@ -1,5 +1,15 @@
 import '@testing-library/jest-dom/vitest';
 
+// Svelte bind:clientWidth uses ResizeObserver, which jsdom does not implement.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
+}
+
 // jsdom's SVGElement has no createSVGRect, which Leaflet's Browser.svg
 // feature-detection relies on — without it, Leaflet silently falls back
 // through Canvas (also unavailable in jsdom) to a null renderer, and any

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { t, tf, type Locale } from '$lib/i18n';
-  import { BIN_COLORS, BIN_HEIGHTS, binName, binRange, ridgeHeight } from './bins';
+  import { BIN_COLORS, BIN_HEIGHTS, BIN_LABEL_COLORS, binName, binRange, ridgeHeight } from './bins';
   import { BINS, PASS_PERCENT, binIndex, isPass, percentOf, toNextBin } from './quiz';
   import { CLIMB_MS } from './reveal';
 
@@ -91,30 +91,50 @@
           e.stopPropagation();
           selected = selected === i ? null : i;
         }}
-      >
-        {#if climb && i <= reached}
-          <span class="step-name">{binName(locale, i)}</span>
-        {/if}
-      </button>
+      ></button>
     {/each}
 
     <span class="threshold" style:left={`${PASS_PERCENT}%`} aria-hidden="true"></span>
 
     {#if previous !== null}
-      <span
-        class="prev"
-        style:left={`${previous}%`}
-        style:bottom={`${ridgeHeight(previous) + 5}px`}
-        aria-hidden="true"
-      ></span>
+      <span class="pin prev" style:left={`${previous}%`} style:bottom={`${ridgeHeight(previous)}px`} aria-hidden="true">
+        <svg viewBox="0 0 32 42">
+          <path
+            d="M16 2c-7.3 0-13.2 5.8-13.2 12.9 0 10 13.2 25.1 13.2 25.1s13.2-15.1 13.2-25.1C29.2 7.8 23.3 2 16 2z"
+          />
+        </svg>
+      </span>
     {/if}
     <span
-      class="you"
+      class="pin you"
       class:visible={climb}
       style:left={`${shown}%`}
-      style:bottom={`${ridgeHeight(shown) + 5}px`}
+      style:bottom={`${ridgeHeight(shown)}px`}
       aria-hidden="true"
-    ></span>
+    >
+      <svg viewBox="0 0 32 42">
+        <path
+          d="M16 2c-7.3 0-13.2 5.8-13.2 12.9 0 10 13.2 25.1 13.2 25.1s13.2-15.1 13.2-25.1C29.2 7.8 23.3 2 16 2z"
+        />
+        <circle cx="16" cy="14.5" r="5.2" />
+      </svg>
+    </span>
+  </div>
+
+  <div class="names" aria-hidden="true">
+    {#each BINS as bin, i (bin.key)}
+      {@const range = binRange(i)}
+      <span
+        class="bin-label"
+        class:first={i === 0}
+        class:last={i === BINS.length - 1}
+        style:left={i === BINS.length - 1 ? undefined : `${range.from}%`}
+        style:width={i === BINS.length - 1 ? undefined : i === 4 ? `${100 - range.from}%` : `${range.to - range.from}%`}
+        style:color={BIN_LABEL_COLORS[i]}
+      >
+        {binName(locale, i)}
+      </span>
+    {/each}
   </div>
 
   <div class="ticks" aria-hidden="true">
@@ -138,7 +158,8 @@
   }
   .peaks {
     position: relative;
-    height: 108px;
+    height: 110px;
+    overflow: visible;
   }
   .step {
     position: absolute;
@@ -158,39 +179,6 @@
   .step.now {
     z-index: 2;
   }
-  .step-name {
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 4px);
-    width: max-content;
-    max-width: 7.5rem;
-    transform: translateX(-50%);
-    font-size: 10px;
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: var(--ink-700);
-    text-align: center;
-    text-wrap: balance;
-    pointer-events: none;
-    opacity: 0.85;
-  }
-  .step.first .step-name {
-    left: 0;
-    transform: none;
-    text-align: left;
-  }
-  .step.last .step-name {
-    left: auto;
-    right: 0;
-    transform: none;
-    text-align: right;
-  }
-  .step.now .step-name {
-    font-size: 12px;
-    opacity: 1;
-    color: var(--ink-800);
-  }
   .step[aria-pressed='true'] {
     filter: brightness(0.92);
   }
@@ -208,30 +196,75 @@
     pointer-events: none;
   }
 
-  .you,
-  .prev {
+  .pin {
     position: absolute;
-    border-radius: 50%;
-    transform: translateX(-50%);
+    width: 32px;
+    height: 42px;
+    transform: translate(-50%, 6px);
     pointer-events: none;
+    z-index: 3;
+  }
+  .pin svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .pin path {
+    fill: currentColor;
+    stroke: var(--white);
+    stroke-width: 2.6;
+    stroke-linejoin: round;
   }
   .you {
-    width: 18px;
-    height: 18px;
-    background: var(--bok-500);
-    border: 3px solid var(--white);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    color: var(--bok-500);
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
     opacity: 0;
     transition: bottom 140ms var(--ease-out), opacity 200ms ease-out;
+  }
+  .you circle {
+    fill: var(--white);
   }
   .you.visible {
     opacity: 1;
   }
   .prev {
-    width: 12px;
-    height: 12px;
-    background: var(--white);
-    border: 2px solid var(--ink-500);
+    color: var(--white);
+    width: 24px;
+    height: 32px;
+    transform: translate(-50%, 5px);
+  }
+  .prev path {
+    stroke: var(--ink-500);
+    stroke-width: 2.2;
+  }
+
+  .names {
+    position: relative;
+    min-height: 3.5em;
+    margin-top: 8px;
+  }
+  .bin-label {
+    position: absolute;
+    top: 0;
+    padding: 0 3px;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .bin-label.first {
+    text-align: left;
+    padding-left: 0;
+  }
+  .bin-label.last {
+    top: 2.3em;
+    right: 0;
+    width: max-content;
+    text-align: right;
+    padding-right: 0;
   }
 
   .ticks {
